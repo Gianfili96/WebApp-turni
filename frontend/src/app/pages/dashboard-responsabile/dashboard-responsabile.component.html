@@ -1,0 +1,140 @@
+<!-- TOOLBAR -->
+<mat-toolbar color="primary">
+  <span class="toolbar-title">🎳 Bowling Turni</span>
+  <span class="spacer"></span>
+  <span class="toolbar-user">{{ nomeUtente }}</span>
+  <button mat-icon-button (click)="logout()" title="Logout">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="dashboard-container">
+
+  <!-- NAVIGAZIONE SETTIMANA -->
+  <div class="week-nav">
+    <button mat-icon-button (click)="settimanaPrecedente()">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <span class="week-label">
+      {{ formatDataLabel(settimanaCorrente[0]) }} - {{ formatDataLabel(settimanaCorrente[6]) }}
+    </span>
+    <button mat-icon-button (click)="settimanaSuccessiva()">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+    <button mat-raised-button color="accent" (click)="apriFormNuovoTurno()" class="btn-nuovo">
+      <mat-icon>add</mat-icon> Nuovo Turno
+    </button>
+  </div>
+
+  <!-- CALENDARIO SETTIMANALE -->
+  <div class="calendario-wrapper">
+    <table class="calendario">
+      <thead>
+        <tr>
+          <th class="col-dipendente">Dipendente</th>
+          <th *ngFor="let giorno of settimanaCorrente; let i = index" class="col-giorno">
+            <div class="giorno-header">
+              <span class="giorno-nome">{{ giorni[i] }}</span>
+              <span class="giorno-data">{{ formatDataLabel(giorno) }}</span>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let dipendente of dipendenti">
+          <td class="col-dipendente">
+            <div class="dipendente-info">
+              <mat-icon class="dipendente-icon">person</mat-icon>
+              <span>{{ dipendente.nome }} {{ dipendente.cognome }}</span>
+            </div>
+          </td>
+          <td *ngFor="let giorno of settimanaCorrente" class="col-cella"
+              (click)="apriFormNuovoTurno(dipendente.id, giorno)">
+            <div *ngFor="let turno of getTurniPerDipendenteEGiorno(dipendente.id, giorno)"
+                 class="turno-chip"
+                 (click)="$event.stopPropagation()">
+              <span class="turno-orario">{{ turno.oraInizio }} - {{ turno.oraFine }}</span>
+              <div class="turno-actions">
+                <button mat-icon-button class="btn-edit" (click)="apriFormModifica(turno)" title="Modifica">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button class="btn-delete" (click)="eliminaTurno(turno.id)" title="Elimina">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="cella-vuota" *ngIf="getTurniPerDipendenteEGiorno(dipendente.id, giorno).length === 0">
+              <mat-icon class="add-icon">add</mat-icon>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FORM TURNO -->
+  <div class="form-overlay" *ngIf="showForm" (click)="chiudiForm()"></div>
+  <div class="form-panel" *ngIf="showForm">
+    <div class="form-header">
+      <h2>{{ turnoInModifica ? 'Modifica Turno' : 'Nuovo Turno' }}</h2>
+      <button mat-icon-button (click)="chiudiForm()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="turnoForm" (ngSubmit)="salvaTurno()">
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Dipendente</mat-label>
+        <mat-select formControlName="dipendenteId">
+          <mat-option *ngFor="let d of dipendenti" [value]="d.id">
+            {{ d.nome }} {{ d.cognome }}
+          </mat-option>
+        </mat-select>
+        <mat-error>Seleziona un dipendente</mat-error>
+      </mat-form-field>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Data inizio</mat-label>
+          <input matInput type="date" formControlName="dataInizio">
+          <mat-error>Obbligatorio</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Ora inizio</mat-label>
+          <input matInput type="time" formControlName="oraInizio">
+          <mat-error>Obbligatorio</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Data fine</mat-label>
+          <input matInput type="date" formControlName="dataFine">
+          <mat-error>Obbligatorio</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Ora fine</mat-label>
+          <input matInput type="time" formControlName="oraFine">
+          <mat-error>Obbligatorio</mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nota (opzionale)</mat-label>
+        <textarea matInput formControlName="nota" rows="2"></textarea>
+      </mat-form-field>
+
+      <div class="form-actions">
+        <button mat-button type="button" (click)="chiudiForm()">Annulla</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="turnoForm.invalid">
+          {{ turnoInModifica ? 'Salva Modifiche' : 'Crea Turno' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

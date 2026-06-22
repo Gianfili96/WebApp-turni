@@ -1,0 +1,62 @@
+<!-- TOOLBAR -->
+<mat-toolbar color="primary">
+  <span class="toolbar-title">🎳 I Miei Turni</span>
+  <span class="spacer"></span>
+  <span class="toolbar-user">{{ nomeUtente }}</span>
+  <button mat-icon-button (click)="logout()" title="Logout">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="addetto-container">
+
+  <!-- NAVIGAZIONE SETTIMANA -->
+  <div class="week-nav">
+    <button mat-icon-button (click)="settimanaPrecedente()">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <span class="week-label">
+      {{ formatDataLabel(settimanaCorrente[0]) }} - {{ formatDataLabel(settimanaCorrente[6]) }}
+    </span>
+    <button mat-icon-button (click)="settimanaSuccessiva()">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  <!-- LISTA TURNI PER GIORNO -->
+  <div class="giorni-list">
+    <mat-card *ngFor="let giorno of settimanaCorrente; let i = index"
+              class="giorno-card"
+              [class.oggi]="isOggi(giorno)">
+
+      <mat-card-header>
+        <mat-card-title>
+          <span class="giorno-nome">{{ giorni[i] }}</span>
+          <span class="giorno-data">{{ formatDataLabel(giorno) }}</span>
+          <span class="badge-oggi" *ngIf="isOggi(giorno)">Oggi</span>
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-divider></mat-divider>
+
+      <mat-card-content>
+        <!-- Turni del giorno -->
+        <div *ngFor="let turno of getTurniGiorno(giorno)" class="turno-item">
+          <mat-icon class="turno-icon">schedule</mat-icon>
+          <div class="turno-dettagli">
+            <span class="turno-orario">{{ turno.oraInizio }} - {{ turno.oraFine }}</span>
+            <span class="turno-nota" *ngIf="turno.nota">{{ turno.nota }}</span>
+          </div>
+        </div>
+
+        <!-- Nessun turno -->
+        <div class="nessun-turno" *ngIf="getTurniGiorno(giorno).length === 0">
+          <mat-icon>event_available</mat-icon>
+          <span>Nessun turno</span>
+        </div>
+      </mat-card-content>
+
+    </mat-card>
+  </div>
+
+</div>

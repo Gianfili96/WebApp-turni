@@ -1,0 +1,215 @@
+.spacer { flex: 1; }
+
+.toolbar-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.toolbar-user {
+  font-size: 14px;
+  margin-right: 8px;
+  opacity: 0.9;
+}
+
+.dashboard-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Navigazione settimana
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+
+  .week-label {
+    font-size: 18px;
+    font-weight: 600;
+    min-width: 160px;
+    text-align: center;
+  }
+
+  .btn-nuovo {
+    margin-left: auto;
+  }
+}
+
+// Calendario
+.calendario-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.calendario {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+
+  th, td {
+    border: 1px solid #e0e0e0;
+    padding: 0;
+  }
+
+  thead th {
+    background: #3f51b5;
+    color: white;
+    padding: 12px 8px;
+    text-align: center;
+
+    &.col-dipendente {
+      background: #1a237e;
+      min-width: 160px;
+    }
+  }
+
+  .giorno-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .giorno-nome {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .giorno-data {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+  }
+}
+
+.col-dipendente {
+  min-width: 160px;
+  padding: 12px !important;
+  background: #f5f5f5;
+
+  .dipendente-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+
+    .dipendente-icon {
+      color: #3f51b5;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+.col-cella {
+  min-width: 120px;
+  height: 80px;
+  vertical-align: top;
+  padding: 4px !important;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #e8eaf6;
+  }
+}
+
+.turno-chip {
+  background: #3f51b5;
+  color: white;
+  border-radius: 8px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+
+  .turno-orario {
+    font-weight: 600;
+    display: block;
+  }
+
+  .turno-actions {
+    display: flex;
+    gap: 0;
+
+    button {
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        color: white;
+      }
+    }
+
+    .btn-delete mat-icon {
+      color: #ffcdd2;
+    }
+  }
+}
+
+.cella-vuota {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  opacity: 0.2;
+
+  .add-icon {
+    font-size: 24px;
+  }
+}
+
+// Form panel
+.form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+}
+
+.form-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 500px;
+  z-index: 101;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+
+  .form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a237e;
+    }
+  }
+}
+
+.full-width { width: 100%; margin-bottom: 8px; }
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  .half-width { flex: 1; }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}

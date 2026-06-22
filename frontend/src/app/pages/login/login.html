@@ -1,0 +1,52 @@
+<div class="login-container">
+  <div class="login-card">
+
+    <div class="login-header">
+      <span class="login-icon">🎳</span>
+      <h1>Bowling Turni</h1>
+      <p>Accedi per gestire i turni</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" placeholder="es. mario@bowling.it">
+        <mat-icon matSuffix>email</mat-icon>
+        <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+          Email obbligatoria
+        </mat-error>
+        <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+          Formato email non valido
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
+        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+          Password obbligatoria
+        </mat-error>
+        <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
+          Minimo 6 caratteri
+        </mat-error>
+      </mat-form-field>
+
+      <div class="error-message" *ngIf="errorMessage">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <button mat-raised-button color="primary" type="submit"
+              class="full-width login-btn"
+              [disabled]="loginForm.invalid || loading">
+        <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+        <span *ngIf="!loading">Accedi</span>
+      </button>
+
+    </form>
+  </div>
+</div>
