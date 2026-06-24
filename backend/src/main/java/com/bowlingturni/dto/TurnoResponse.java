@@ -20,6 +20,7 @@ public class TurnoResponse {
     private LocalDate dataFine;
     private LocalTime oraFine;
     private String nota;
+    private Turno.TipoTurno tipo;
 
     // Metodo factory statico per convertire l'entity in DTO
     public static TurnoResponse fromEntity(Turno turno) {
@@ -33,6 +34,7 @@ public class TurnoResponse {
                 .dataFine(turno.getDataFine())
                 .oraFine(turno.getOraFine())
                 .nota(turno.getNota())
+                .tipo(turno.getTipo())
                 .build();
     }
 }

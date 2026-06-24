@@ -42,9 +42,10 @@
       <mat-card-content>
         <!-- Turni del giorno -->
         <div *ngFor="let turno of getTurniGiorno(giorno)" class="turno-item">
-          <mat-icon class="turno-icon">schedule</mat-icon>
+          <mat-icon class="turno-icon" [style.color]="getColoreTurno(turno.tipo)">schedule</mat-icon>
           <div class="turno-dettagli">
-            <span class="turno-orario">{{ turno.oraInizio }} - {{ turno.oraFine }}</span>
+            <span class="turno-tipo" [style.color]="getColoreTurno(turno.tipo)">{{ turno.tipo }}</span>
+            <span class="turno-orario">{{ formatOrario(turno.oraInizio) }} - {{ formatOrario(turno.oraFine) }}</span>
             <span class="turno-nota" *ngIf="turno.nota">{{ turno.nota }}</span>
           </div>
         </div>

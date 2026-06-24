@@ -52,7 +52,10 @@ public class TurnoService {
     public TurnoResponse creaTurno(TurnoRequest request) {
         Dipendente dipendente = trovaDipendente(request.getDipendenteId());
         validaOrari(request);
-        controllaSovrapposizione(request, 0L); // 0L = nessun turno da escludere
+
+        if (request.getTipo() == Turno.TipoTurno.TURNO) {
+            controllaSovrapposizione(request, 0L);
+        }
 
         Turno turno = Turno.builder()
                 .dipendente(dipendente)
@@ -61,6 +64,7 @@ public class TurnoService {
                 .dataFine(request.getDataFine())
                 .oraFine(request.getOraFine())
                 .nota(request.getNota())
+                .tipo(request.getTipo())
                 .build();
 
         return TurnoResponse.fromEntity(turnoRepository.save(turno));
@@ -77,7 +81,10 @@ public class TurnoService {
 
         Dipendente dipendente = trovaDipendente(request.getDipendenteId());
         validaOrari(request);
-        controllaSovrapposizione(request, id); // esclude se stesso
+
+        if (request.getTipo() == Turno.TipoTurno.TURNO) {
+            controllaSovrapposizione(request, id);
+        }
 
         turno.setDipendente(dipendente);
         turno.setDataInizio(request.getDataInizio());
@@ -85,6 +92,7 @@ public class TurnoService {
         turno.setDataFine(request.getDataFine());
         turno.setOraFine(request.getOraFine());
         turno.setNota(request.getNota());
+        turno.setTipo(request.getTipo());
 
         return TurnoResponse.fromEntity(turnoRepository.save(turno));
     }
@@ -111,6 +119,12 @@ public class TurnoService {
     }
 
     private void validaOrari(TurnoRequest request) {
+        if (request.getTipo() != Turno.TipoTurno.TURNO) return;
+
+        if (request.getOraInizio() == null || request.getOraFine() == null) {
+            throw new RuntimeException("Orari obbligatori per i turni");
+        }
+
         LocalDateTime inizio = LocalDateTime.of(request.getDataInizio(), request.getOraInizio());
         LocalDateTime fine   = LocalDateTime.of(request.getDataFine(),   request.getOraFine());
 

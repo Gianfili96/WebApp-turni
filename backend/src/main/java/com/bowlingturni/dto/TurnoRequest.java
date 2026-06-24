@@ -1,5 +1,6 @@
 package com.bowlingturni.dto;
 
+import com.bowlingturni.entity.Turno;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,14 +18,17 @@ public class TurnoRequest {
     @NotNull(message = "Data inizio obbligatoria")
     private LocalDate dataInizio;
 
-    @NotNull(message = "Ora inizio obbligatoria")
+    //@NotNull(message = "Ora inizio obbligatoria")
     private LocalTime oraInizio;
 
     @NotNull(message = "Data fine obbligatoria")
     private LocalDate dataFine;
 
-    @NotNull(message = "Ora fine obbligatoria")
+    //@NotNull(message = "Ora fine obbligatoria")
     private LocalTime oraFine;
+
+    @NotNull(message = "Tipo obbligatorio")
+    private Turno.TipoTurno tipo;
 
     private String nota;
 }

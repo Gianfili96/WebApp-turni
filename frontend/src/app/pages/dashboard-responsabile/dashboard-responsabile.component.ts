@@ -42,6 +42,22 @@ import { Turno, TurnoRequest, Dipendente } from '../../models/turno.model';
 })
 export class DashboardResponsabileComponent implements OnInit {
 
+    tipiTurno = [
+    { value: 'TURNO',    label: 'Turno' },
+    { value: 'FERIE',    label: 'Ferie' },
+    { value: 'MALATTIA', label: 'Malattia' },
+    { value: 'RIPOSO',   label: 'Riposo' }
+  ];
+
+  getColoreTurno(tipo: string): string {
+    switch(tipo) {
+      case 'FERIE':    return '#4caf50';
+      case 'MALATTIA': return '#f44336';
+      case 'RIPOSO':   return '#ff9800';
+      default:         return '#3f51b5';
+    }
+  }
+
   // Giorni della settimana
   giorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
 
@@ -68,10 +84,11 @@ export class DashboardResponsabileComponent implements OnInit {
     this.turnoForm = this.fb.group({
       dipendenteId: ['', Validators.required],
       dataInizio: ['', Validators.required],
-      oraInizio: ['', Validators.required],
+      oraInizio: [''],
       dataFine: ['', Validators.required],
-      oraFine: ['', Validators.required],
-      nota: ['']
+      oraFine: [''],
+      nota: [''],
+      tipo: ['TURNO', Validators.required]
     });
   }
 
@@ -164,26 +181,62 @@ export class DashboardResponsabileComponent implements OnInit {
   salvaTurno(): void {
     if (this.turnoForm.invalid) return;
 
-    const request: TurnoRequest = this.turnoForm.value;
+    const formValue = this.turnoForm.value;
 
-    if (this.turnoInModifica) {
-      this.turniService.modificaTurno(this.turnoInModifica.id, request).subscribe({
-        next: () => {
-          this.mostraSuccesso('Turno modificato con successo');
-          this.chiudiForm();
-          this.caricaTurni();
-        },
-        error: (err) => this.mostraErrore(err.error?.messaggio || 'Errore nella modifica')
+    // Se ci sono più giorni selezionati crea turni multipli
+    if (this.giorniSelezionati.length > 0 && !this.turnoInModifica) {
+      const requests: TurnoRequest[] = this.giorniSelezionati.map(giornoIndex => {
+        const dataInizio = this.settimanaCorrente[giornoIndex];
+        const dataInizioStr = this.formatData(dataInizio);
+
+        // Calcola differenza giorni tra dataInizio e dataFine del form
+        const formDataInizio = new Date(formValue.dataInizio);
+        const formDataFine = new Date(formValue.dataFine);
+        const diffGiorni = Math.round(
+          (formDataFine.getTime() - formDataInizio.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        // Applica la stessa differenza al giorno selezionato
+        const dataFine = new Date(dataInizio);
+        dataFine.setDate(dataInizio.getDate() + diffGiorni);
+        const dataFineStr = this.formatData(dataFine);
+
+        return {
+          ...formValue,
+          dataInizio: dataInizioStr,
+          dataFine: dataFineStr
+        };
       });
-    } else {
-      this.turniService.creaTurno(request).subscribe({
+
+      this.turniService.creaTurniMultipli(requests).subscribe({
         next: () => {
-          this.mostraSuccesso('Turno creato con successo');
+          this.mostraSuccesso(`${requests.length} turni creati con successo`);
           this.chiudiForm();
           this.caricaTurni();
         },
         error: (err) => this.mostraErrore(err.error?.messaggio || 'Errore nella creazione')
       });
+    } else {
+      // Creazione/modifica singola
+      if (this.turnoInModifica) {
+        this.turniService.modificaTurno(this.turnoInModifica.id, formValue).subscribe({
+          next: () => {
+            this.mostraSuccesso('Turno modificato con successo');
+            this.chiudiForm();
+            this.caricaTurni();
+          },
+          error: (err) => this.mostraErrore(err.error?.messaggio || 'Errore nella modifica')
+        });
+      } else {
+        this.turniService.creaTurno(formValue).subscribe({
+          next: () => {
+            this.mostraSuccesso('Turno creato con successo');
+            this.chiudiForm();
+            this.caricaTurni();
+          },
+          error: (err) => this.mostraErrore(err.error?.messaggio || 'Errore nella creazione')
+        });
+      }
     }
   }
 
@@ -201,7 +254,8 @@ export class DashboardResponsabileComponent implements OnInit {
   chiudiForm(): void {
     this.showForm = false;
     this.turnoInModifica = null;
-    this.turnoForm.reset();
+    this.turnoForm.reset({ tipo: 'TURNO' });
+    this.giorniSelezionati = [];
   }
 
   logout(): void {
@@ -215,8 +269,12 @@ export class DashboardResponsabileComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  formatOrario(ora: string): string {
+    return ora ? ora.substring(0, 5) : '';
+  }
+
   formatDataLabel(data: Date): string {
-    return data.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+    return data.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
   private mostraSuccesso(msg: string): void {
@@ -225,5 +283,51 @@ export class DashboardResponsabileComponent implements OnInit {
 
   private mostraErrore(msg: string): void {
     this.snackBar.open(msg, 'OK', { duration: 4000, panelClass: 'snack-error' });
+  }
+
+    onTipoChange(tipo: string): void {
+    const oraInizio = this.turnoForm.get('oraInizio');
+    const oraFine = this.turnoForm.get('oraFine');
+
+    if (tipo === 'TURNO') {
+      oraInizio?.setValidators(Validators.required);
+      oraFine?.setValidators(Validators.required);
+    } else {
+      oraInizio?.clearValidators();
+      oraFine?.clearValidators();
+      oraInizio?.setValue('');
+      oraFine?.setValue('');
+    }
+
+    oraInizio?.updateValueAndValidity();
+    oraFine?.updateValueAndValidity();
+  }
+
+  isTurnoNormale(): boolean {
+    return this.turnoForm.get('tipo')?.value === 'TURNO';
+  }
+
+  giorniSettimanaForm = [
+    { label: 'Lun', value: 0 },
+    { label: 'Mar', value: 1 },
+    { label: 'Mer', value: 2 },
+    { label: 'Gio', value: 3 },
+    { label: 'Ven', value: 4 },
+    { label: 'Sab', value: 5 },
+    { label: 'Dom', value: 6 }
+  ];
+
+  giorniSelezionati: number[] = [];
+
+  toggleGiorno(index: number): void {
+    if (this.giorniSelezionati.includes(index)) {
+      this.giorniSelezionati = this.giorniSelezionati.filter(g => g !== index);
+    } else {
+      this.giorniSelezionati.push(index);
+    }
+  }
+
+  isGiornoSelezionato(index: number): boolean {
+    return this.giorniSelezionati.includes(index);
   }
 }

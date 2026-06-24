@@ -49,6 +49,16 @@ public class TurniController {
         return ResponseEntity.status(HttpStatus.CREATED).body(turnoService.creaTurno(request));
     }
 
+    // Crea più turni in una volta (stesso orario su più giorni)
+    @PostMapping("/multipli")
+    @PreAuthorize("hasRole('RESPONSABILE')")
+    public ResponseEntity<List<TurnoResponse>> creaTurniMultipli(@RequestBody List<TurnoRequest> requests) {
+        List<TurnoResponse> turni = requests.stream()
+                .map(turnoService::creaTurno)
+                .toList();
+        return ResponseEntity.status(HttpStatus.CREATED).body(turni);
+    }
+
     // Modifica turno esistente — solo responsabile
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('RESPONSABILE')")

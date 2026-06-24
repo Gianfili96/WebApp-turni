@@ -52,8 +52,11 @@
               (click)="apriFormNuovoTurno(dipendente.id, giorno)">
             <div *ngFor="let turno of getTurniPerDipendenteEGiorno(dipendente.id, giorno)"
                  class="turno-chip"
+                 [style.background-color]="getColoreTurno(turno.tipo)"
                  (click)="$event.stopPropagation()">
-              <span class="turno-orario">{{ turno.oraInizio }} - {{ turno.oraFine }}</span>
+              <span class="turno-orario">
+                {{ turno.oraInizio ? formatOrario(turno.oraInizio) + ' - ' + formatOrario(turno.oraFine) : turno.tipo }}
+              </span>
               <div class="turno-actions">
                 <button mat-icon-button class="btn-edit" (click)="apriFormModifica(turno)" title="Modifica">
                   <mat-icon>edit</mat-icon>
@@ -108,7 +111,7 @@
         </mat-form-field>
       </div>
 
-      <div class="form-row">
+      <div class="form-row" *ngIf="isTurnoNormale()">
         <mat-form-field appearance="outline" class="half-width">
           <mat-label>Data fine</mat-label>
           <input matInput type="date" formControlName="dataFine">
@@ -120,6 +123,33 @@
           <input matInput type="time" formControlName="oraFine">
           <mat-error>Obbligatorio</mat-error>
         </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo" (selectionChange)="onTipoChange($event.value)">
+          <mat-option *ngFor="let t of tipiTurno" [value]="t.value">
+            {{ t.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error>Seleziona un tipo</mat-error>
+      </mat-form-field>
+
+      <!-- Selettore giorni multipli (solo per nuovo turno) -->
+      <div class="giorni-selector" *ngIf="!turnoInModifica">
+        <label class="giorni-label">Ripeti nei giorni:</label>
+        <div class="giorni-buttons">
+          <button *ngFor="let giorno of giorniSettimanaForm"
+                  type="button"
+                  class="giorno-btn"
+                  [class.selected]="isGiornoSelezionato(giorno.value)"
+                  (click)="toggleGiorno(giorno.value)">
+            {{ giorno.label }}
+          </button>
+        </div>
+        <small class="giorni-hint" *ngIf="giorniSelezionati.length > 0">
+          {{ giorniSelezionati.length }} giorni selezionati — le date inizio/fine verranno ignorate
+        </small>
       </div>
 
       <mat-form-field appearance="outline" class="full-width">

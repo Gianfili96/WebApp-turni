@@ -1,3 +1,5 @@
+export type TipoTurno = 'TURNO' | 'FERIE' | 'MALATTIA' | 'RIPOSO';
+
 // turno.model.ts
 export interface Turno {
   id: number;
@@ -9,6 +11,7 @@ export interface Turno {
   dataFine: string;
   oraFine: string;
   nota?: string;
+  tipo: TipoTurno;
 }
 
 export interface TurnoRequest {
@@ -18,6 +21,7 @@ export interface TurnoRequest {
   dataFine: string;
   oraFine: string;
   nota?: string;
+  tipo: TipoTurno;
 }
 
 // dipendente.model.ts

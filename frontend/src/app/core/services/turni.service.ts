@@ -12,6 +12,10 @@ export class TurniService {
 
   constructor(private http: HttpClient) {}
 
+    creaTurniMultipli(turni: TurnoRequest[]): Observable<Turno[]> {
+    return this.http.post<Turno[]>(`${this.API_URL}/multipli`, turni);
+  }
+
   getTurniSettimana(dal: string, al: string): Observable<Turno[]> {
     const params = new HttpParams().set('dal', dal).set('al', al);
     return this.http.get<Turno[]>(this.API_URL, { params });

@@ -21,6 +21,17 @@ import java.time.LocalTime;
 @Builder
 public class Turno {
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TipoTurno tipo;
+
+    public enum TipoTurno {
+        TURNO,
+        FERIE,
+        MALATTIA,
+        RIPOSO
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

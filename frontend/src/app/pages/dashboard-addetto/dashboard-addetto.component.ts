@@ -111,7 +111,20 @@ export class DashboardAddettoComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  formatOrario(ora: string): string {
+    return ora ? ora.substring(0, 5) : '';
+  }
+
   formatDataLabel(data: Date): string {
-    return data.toLocaleDateString('it-IT', { weekday: 'long', day: '2-digit', month: '2-digit' });
+    return data.toLocaleDateString('it-IT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  getColoreTurno(tipo: string): string {
+    switch(tipo) {
+      case 'FERIE':    return '#4caf50';
+      case 'MALATTIA': return '#f44336';
+      case 'RIPOSO':   return '#ff9800';
+      default:         return '#3f51b5';
+    }
   }
 }
