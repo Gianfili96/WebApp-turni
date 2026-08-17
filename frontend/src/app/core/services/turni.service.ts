@@ -8,7 +8,7 @@ import { Turno, TurnoRequest } from '../../models/turno.model';
 })
 export class TurniService {
 
-  private readonly API_URL = 'http://localhost:8080/api/turni';
+  private readonly API_URL = 'http://192.168.1.174:8080/api/turni';
 
   constructor(private http: HttpClient) {}
 
