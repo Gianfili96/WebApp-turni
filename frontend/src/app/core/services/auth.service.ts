@@ -9,7 +9,7 @@ import { LoginRequest, LoginResponse, UserSession } from '../../models/user.mode
 })
 export class AuthService {
 
-  private readonly API_URL = 'http://192.168.1.174:8080/api';
+  private readonly API_URL = '/api';
   private readonly TOKEN_KEY = 'bowling_token';
   private readonly USER_KEY = 'bowling_user';
 

@@ -8,7 +8,7 @@ import { Dipendente } from '../../models/turno.model';
 })
 export class DipendentiService {
 
-  private readonly API_URL = 'http://192.168.1.174:8080/api/dipendenti';
+  private readonly API_URL = '/api/dipendenti';
 
   constructor(private http: HttpClient) {}
 
