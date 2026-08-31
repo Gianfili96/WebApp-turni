@@ -3,21 +3,18 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { LoginRequest, LoginResponse, UserSession } from '../../models/user.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-
-  private readonly API_URL = '/api';
+  private readonly API_URL = environment.apiUrl;
   private readonly TOKEN_KEY = 'bowling_token';
   private readonly USER_KEY = 'bowling_user';
-
   private currentUserSubject = new BehaviorSubject<UserSession | null>(this.getUserFromStorage());
   currentUser$ = this.currentUserSubject.asObservable();
-
   constructor(private http: HttpClient, private router: Router) {}
-
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.API_URL}/login`, request).pipe(
       tap(response => {
@@ -35,30 +32,24 @@ export class AuthService {
       })
     );
   }
-
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
-
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
-
   getCurrentUser(): UserSession | null {
     return this.currentUserSubject.value;
   }
-
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
-
   isResponsabile(): boolean {
     return this.getCurrentUser()?.ruolo === 'RESPONSABILE';
   }
-
   private getUserFromStorage(): UserSession | null {
     const user = localStorage.getItem(this.USER_KEY);
     return user ? JSON.parse(user) : null;

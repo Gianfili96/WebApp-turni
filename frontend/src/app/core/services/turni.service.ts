@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Turno, TurnoRequest } from '../../models/turno.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TurniService {
 
-  private readonly API_URL = '/api/turni';
+  private readonly API_URL = `${environment.apiUrl}/turni`;
 
   constructor(private http: HttpClient) {}
 
