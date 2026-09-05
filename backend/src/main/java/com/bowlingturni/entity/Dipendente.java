@@ -34,6 +34,10 @@ public class Dipendente {
     @Column(nullable = false)
     private Boolean attivo = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Reparto reparto;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
