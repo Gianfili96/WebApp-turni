@@ -1,0 +1,144 @@
+<!-- TOOLBAR -->
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="tornaAllaDashboard()" title="Torna alla dashboard">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span class="toolbar-title">👥 Gestione Dipendenti</span>
+  <span class="spacer"></span>
+  <span class="toolbar-user">{{ nomeUtente }}</span>
+  <button mat-icon-button (click)="logout()" title="Logout">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h2>Dipendenti registrati</h2>
+      <p>{{ dipendenti.length }} dipendenti attivi nel sistema</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="dipendenteInModifica = null; showForm = true">
+      <mat-icon>person_add</mat-icon> Nuovo Dipendente
+    </button>
+  </div>
+
+  <!-- LISTA DIPENDENTI -->
+  <div class="dipendenti-grid">
+    <mat-card *ngFor="let dipendente of dipendenti" class="dipendente-card">
+      <mat-card-header>
+        <div class="avatar" [style.background-color]="getRepartoColore(dipendente.reparto)">
+          {{ dipendente.nome[0] }}{{ dipendente.cognome[0] }}
+        </div>
+        <mat-card-title>{{ dipendente.nome }} {{ dipendente.cognome }}</mat-card-title>
+        <mat-card-subtitle>{{ dipendente.email }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-divider></mat-divider>
+
+      <mat-card-content>
+        <div class="dipendente-info-row">
+          <mat-icon>work</mat-icon>
+          <span class="reparto-badge" [style.background-color]="getRepartoColore(dipendente.reparto)">
+            {{ getRepartoLabel(dipendente.reparto) }}
+          </span>
+        </div>
+        <div class="dipendente-info-row" *ngIf="dipendente.telefono">
+          <mat-icon>phone</mat-icon>
+          <span>{{ dipendente.telefono }}</span>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-stroked-button color="primary" (click)="apriFormModifica(dipendente)">
+            <mat-icon>edit</mat-icon> Modifica
+        </button>
+        <button class="color-bg" mat-raised-button color="warn" (click)="eliminaDipendente(dipendente.id)">
+            <mat-icon>delete</mat-icon> Elimina
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Nessun dipendente -->
+    <div class="nessun-dipendente" *ngIf="dipendenti.length === 0">
+      <mat-icon>group_off</mat-icon>
+      <p>Nessun dipendente registrato</p>
+      <button mat-raised-button color="primary" (click)="dipendenteInModifica = null; showForm = true">
+        Aggiungi il primo dipendente
+      </button>
+    </div>
+  </div>
+
+  <!-- FORM REGISTRAZIONE / MODIFICA -->
+  <div class="form-overlay" *ngIf="showForm" (click)="chiudiForm()"></div>
+  <div class="form-panel" *ngIf="showForm">
+    <div class="form-header">
+      <h2>{{ dipendenteInModifica ? 'Modifica Dipendente' : 'Nuovo Dipendente' }}</h2>
+      <button mat-icon-button (click)="chiudiForm()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="registrazioneForm" (ngSubmit)="registraDipendente()">
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="nome">
+          <mat-error>Obbligatorio</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Cognome</mat-label>
+          <input matInput formControlName="cognome">
+          <mat-error>Obbligatorio</mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email">
+        <mat-icon matSuffix>email</mat-icon>
+        <mat-error *ngIf="registrazioneForm.get('email')?.hasError('required')">Obbligatoria</mat-error>
+        <mat-error *ngIf="registrazioneForm.get('email')?.hasError('email')">Formato non valido</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ dipendenteInModifica ? 'Nuova Password (lascia vuoto per non cambiare)' : 'Password temporanea' }}</mat-label>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
+        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="registrazioneForm.get('password')?.hasError('required')">Obbligatoria</mat-error>
+        <mat-error *ngIf="registrazioneForm.get('password')?.hasError('minlength')">Minimo 6 caratteri</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Telefono (opzionale)</mat-label>
+        <input matInput formControlName="telefono">
+        <mat-icon matSuffix>phone</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Reparto</mat-label>
+        <mat-select formControlName="reparto">
+          <mat-option *ngFor="let r of reparti" [value]="r.value">
+            {{ r.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error>Seleziona un reparto</mat-error>
+      </mat-form-field>
+
+      <div class="form-actions">
+        <button mat-button type="button" (click)="chiudiForm()">Annulla</button>
+        <button mat-raised-button color="primary" type="submit"
+                [disabled]="registrazioneForm.invalid || loading">
+          {{ dipendenteInModifica ? 'Salva Modifiche' : 'Registra Dipendente' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

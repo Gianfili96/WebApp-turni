@@ -41,6 +41,8 @@ public class SecurityConfig {
                         // Login è pubblico
                         .requestMatchers("/api/login").permitAll()
                         // Tutto il resto richiede autenticazione
+                        .requestMatchers("/api/login").permitAll()
+                        .requestMatchers("/api/cambio-password-primo-accesso").permitAll()
                         .anyRequest().authenticated()
                 )
 

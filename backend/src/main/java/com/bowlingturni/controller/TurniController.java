@@ -75,4 +75,15 @@ public class TurniController {
         turnoService.eliminaTurno(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/notifica-reparto")
+    @PreAuthorize("hasRole('RESPONSABILE')")
+    public ResponseEntity<Void> notificaTurniReparto(
+            @RequestParam String reparto,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dal,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate al,
+            @RequestBody(required = false) List<Long> dipendentiIds) {
+        turnoService.notificaTurniReparto(reparto, dal.toString(), al.toString(), dipendentiIds);
+        return ResponseEntity.ok().build();
+    }
 }

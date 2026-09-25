@@ -22,6 +22,16 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'dipendenti',
+    loadComponent: () => import('./pages/gestione-dipendenti/gestione-dipendenti').then(m => m.GestioneDipendentiComponent),
+    canActivate: [responsabileGuard]
+  },
+  {
+  path: 'cambio-password',
+  loadComponent: () => import('./pages/cambio-password/cambio-password')
+    .then(m => m.CambioPasswordComponent)
+  },
+  {
     path: '**',
     redirectTo: 'login'
   }

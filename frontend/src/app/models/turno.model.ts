@@ -17,10 +17,10 @@ export interface Turno {
 export interface TurnoRequest {
   dipendenteId: number;
   dataInizio: string;
-  oraInizio: string;
+  oraInizio: string | null;
   dataFine: string;
-  oraFine: string;
-  nota?: string;
+  oraFine: string | null;
+  nota?: string | null;
   tipo: TipoTurno;
 }
 
@@ -32,4 +32,5 @@ export interface Dipendente {
   telefono?: string;
   email: string;
   attivo: boolean;
+  reparto: string;
 }

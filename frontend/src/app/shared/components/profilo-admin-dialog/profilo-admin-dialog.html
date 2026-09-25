@@ -1,0 +1,98 @@
+<div class="dialog-container">
+
+  <div class="dialog-header">
+    <div class="avatar">{{ getAvatarLetters() }}</div>
+    <div class="header-info" *ngIf="utente">
+      <h2>{{ utente.nome }}</h2>
+      <span class="ruolo-badge">Responsabile</span>
+    </div>
+    <button mat-icon-button (click)="chiudi()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <mat-tab-group animationDuration="200ms">
+
+      <!-- TAB 1: DATI PROFILO -->
+      <mat-tab label="Profilo">
+        <div class="dati-section" *ngIf="utente">
+          <div class="dato-riga">
+            <mat-icon>email</mat-icon>
+            <div class="dato-content">
+              <span class="dato-label">Email</span>
+              <span class="dato-valore">{{ utente.email }}</span>
+            </div>
+          </div>
+          <div class="dato-riga">
+            <mat-icon>verified_user</mat-icon>
+            <div class="dato-content">
+              <span class="dato-label">Ruolo</span>
+              <span class="dato-valore">Responsabile</span>
+            </div>
+          </div>
+          <div class="dato-riga">
+            <mat-icon>badge</mat-icon>
+            <div class="dato-content">
+              <span class="dato-label">Nome</span>
+              <span class="dato-valore">{{ utente.nome }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 2: CAMBIA PASSWORD -->
+      <mat-tab label="Password">
+        <div class="password-section">
+          <form [formGroup]="passwordForm">
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password attuale</mat-label>
+              <input matInput [type]="hidePasswordAttuale ? 'password' : 'text'" formControlName="passwordAttuale">
+              <button mat-icon-button matSuffix type="button" (click)="hidePasswordAttuale = !hidePasswordAttuale">
+                <mat-icon>{{ hidePasswordAttuale ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error>Obbligatoria</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nuova password</mat-label>
+              <input matInput [type]="hideNuovaPassword ? 'password' : 'text'" formControlName="nuovaPassword">
+              <button mat-icon-button matSuffix type="button" (click)="hideNuovaPassword = !hideNuovaPassword">
+                <mat-icon>{{ hideNuovaPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error *ngIf="passwordForm.get('nuovaPassword')?.hasError('required')">Obbligatoria</mat-error>
+              <mat-error *ngIf="passwordForm.get('nuovaPassword')?.hasError('minlength')">Minimo 6 caratteri</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Conferma nuova password</mat-label>
+              <input matInput [type]="hideConfermaPassword ? 'password' : 'text'" formControlName="confermaPassword">
+              <button mat-icon-button matSuffix type="button" (click)="hideConfermaPassword = !hideConfermaPassword">
+                <mat-icon>{{ hideConfermaPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error *ngIf="passwordForm.get('confermaPassword')?.hasError('required')">Obbligatoria</mat-error>
+              <mat-error *ngIf="passwordForm.hasError('passwordMismatch') && passwordForm.get('confermaPassword')?.touched">
+                Le password non coincidono
+              </mat-error>
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" class="full-width btn-cambia"
+                    (click)="cambiPassword()"
+                    [disabled]="passwordForm.invalid || loading">
+              <mat-icon>lock_reset</mat-icon>
+              {{ loading ? 'Salvataggio...' : 'Cambia Password' }}
+            </button>
+
+          </form>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-stroked-button (click)="chiudi()">Chiudi</button>
+  </mat-dialog-actions>
+
+</div>

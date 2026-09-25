@@ -1,0 +1,78 @@
+<div class="dialog-container">
+
+  <div class="dialog-header">
+    <mat-icon class="dialog-icon">person</mat-icon>
+    <h2>Il Mio Profilo</h2>
+    <button mat-icon-button (click)="chiudi()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+
+    <!-- Avatar e nome -->
+    <div class="profilo-avatar-section">
+      <div class="avatar">
+        {{ getAvatarLetters() }}
+      </div>
+      <div class="profilo-nome">
+        <h3>{{ dipendente?.nome }} {{ dipendente?.cognome }}</h3>
+        <span class="reparto-badge" *ngIf="dipendente?.reparto">
+          {{ getRepartoLabel(dipendente!.reparto) }}
+        </span>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Dati profilo -->
+    <div class="profilo-dati" *ngIf="dipendente">
+
+      <div class="profilo-riga">
+        <mat-icon>email</mat-icon>
+        <div class="profilo-riga-content">
+          <span class="label">Email</span>
+          <span class="valore">{{ dipendente.email }}</span>
+        </div>
+      </div>
+
+      <div class="profilo-riga">
+        <mat-icon>phone</mat-icon>
+        <div class="profilo-riga-content">
+          <span class="label">Telefono</span>
+          <span class="valore">{{ dipendente.telefono || 'Non inserito' }}</span>
+        </div>
+      </div>
+
+      <div class="profilo-riga">
+        <mat-icon>work</mat-icon>
+        <div class="profilo-riga-content">
+          <span class="label">Reparto</span>
+          <span class="valore">{{ getRepartoLabel(dipendente.reparto) }}</span>
+        </div>
+      </div>
+
+      <div class="profilo-riga">
+        <mat-icon>verified_user</mat-icon>
+        <div class="profilo-riga-content">
+          <span class="label">Ruolo</span>
+          <span class="valore">Addetto</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" *ngIf="!dipendente">
+      <p>Caricamento profilo...</p>
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="chiudi()">
+      Chiudi
+    </button>
+  </mat-dialog-actions>
+
+</div>

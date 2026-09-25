@@ -21,12 +21,12 @@ public class TurnoService {
 
     private final TurnoRepository      turnoRepository;
     private final DipendenteRepository dipendenteRepository;
+    private final EmailService         emailService;  // ← aggiungi
 
     // ----------------------------------------------------------------
     // READ
     // ----------------------------------------------------------------
 
-    // Tutti i turni della settimana (vista responsabile)
     public List<TurnoResponse> getTurniSettimana(LocalDate dal, LocalDate al) {
         return turnoRepository
                 .findByDataInizioBetweenOrderByDataInizioAscOraInizioAsc(dal, al)
@@ -35,7 +35,6 @@ public class TurnoService {
                 .toList();
     }
 
-    // Turni di un singolo dipendente nella settimana (vista addetto)
     public List<TurnoResponse> getTurniDipendente(Long dipendenteId, LocalDate dal, LocalDate al) {
         return turnoRepository
                 .findByDipendenteIdAndDataInizioBetweenOrderByDataInizioAscOraInizioAsc(dipendenteId, dal, al)
@@ -107,6 +106,37 @@ public class TurnoService {
             throw new RuntimeException("Turno non trovato con id: " + id);
         }
         turnoRepository.deleteById(id);
+    }
+
+    // ----------------------------------------------------------------
+    // NOTIFICA TURNI REPARTO
+    // ----------------------------------------------------------------
+
+    public void notificaTurniReparto(String reparto, String dal, String al, List<Long> dipendentiIds) {
+        LocalDate dalDate = LocalDate.parse(dal);
+        LocalDate alDate = LocalDate.parse(al);
+
+        List<Dipendente> dipendenti = dipendenteRepository.findByAttivoTrue()
+                .stream()
+                .filter(d -> d.getReparto().name().equals(reparto))
+                .filter(d -> dipendentiIds == null || dipendentiIds.isEmpty() || dipendentiIds.contains(d.getId()))
+                .toList();
+
+        for (Dipendente dipendente : dipendenti) {
+            List<Turno> turni = turnoRepository
+                    .findByDipendenteIdAndDataInizioBetweenOrderByDataInizioAscOraInizioAsc(
+                            dipendente.getId(), dalDate, alDate);
+
+            if (!turni.isEmpty()) {
+                emailService.inviaNotificaTurni(
+                        dipendente.getUser().getEmail(),
+                        dipendente.getNome(),
+                        turni,
+                        dal,
+                        al
+                );
+            }
+        }
     }
 
     // ----------------------------------------------------------------

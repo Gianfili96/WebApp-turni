@@ -1,0 +1,73 @@
+<div class="dialog-container">
+
+  <div class="dialog-header">
+    <mat-icon class="dialog-icon">schedule</mat-icon>
+    <div class="header-testo">
+      <h2>Riepilogo Ore Settimanali</h2>
+      <span class="header-subtitle">{{ data.dal }} - {{ data.al }}</span>
+    </div>
+    <button mat-icon-button (click)="chiudi()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+
+    <!-- Loading -->
+    <div class="loading" *ngIf="loading">
+      <p>Caricamento in corso...</p>
+    </div>
+
+    <!-- Nessun turno -->
+    <div class="nessun-dato" *ngIf="!loading && riepilogo.length === 0">
+      <mat-icon>event_busy</mat-icon>
+      <p>Nessun turno trovato per questa settimana</p>
+    </div>
+
+    <!-- Lista dipendenti -->
+    <div class="riepilogo-lista" *ngIf="!loading && riepilogo.length > 0">
+      <div *ngFor="let r of riepilogo" class="dipendente-card">
+
+        <div class="dipendente-header">
+          <div class="avatar">{{ getAvatarLetters(r.dipendente) }}</div>
+          <div class="dipendente-info">
+            <span class="dipendente-nome">{{ r.dipendente.nome }} {{ r.dipendente.cognome }}</span>
+            <span class="dipendente-reparto">{{ r.dipendente.reparto }}</span>
+          </div>
+          <div class="ore-totali" *ngIf="r.oreTotali > 0 || r.minutiTotali > 0">
+            <span class="ore-valore">{{ formatOre(r.oreTotali, r.minutiTotali) }}</span>
+            <span class="ore-label">lavorate</span>
+          </div>
+        </div>
+
+        <div class="statistiche">
+          <div class="stat-item lavoro" *ngIf="r.giorniLavorati > 0">
+            <mat-icon>work</mat-icon>
+            <span>{{ r.giorniLavorati }} giorn{{ r.giorniLavorati === 1 ? 'o' : 'i' }} di lavoro</span>
+          </div>
+          <div class="stat-item ferie" *ngIf="r.giorniFerie > 0">
+            <mat-icon>beach_access</mat-icon>
+            <span>{{ r.giorniFerie }} giorn{{ r.giorniFerie === 1 ? 'o' : 'i' }} di ferie</span>
+          </div>
+          <div class="stat-item malattia" *ngIf="r.giorniMalattia > 0">
+            <mat-icon>local_hospital</mat-icon>
+            <span>{{ r.giorniMalattia }} giorn{{ r.giorniMalattia === 1 ? 'o' : 'i' }} di malattia</span>
+          </div>
+          <div class="stat-item riposo" *ngIf="r.giorniRiposo > 0">
+            <mat-icon>hotel</mat-icon>
+            <span>{{ r.giorniRiposo }} giorn{{ r.giorniRiposo === 1 ? 'o' : 'i' }} di riposo</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="chiudi()">
+      Chiudi
+    </button>
+  </mat-dialog-actions>
+
+</div>

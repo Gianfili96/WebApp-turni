@@ -1,0 +1,200 @@
+.dialog-container {
+  padding: 8px;
+  min-width: 500px;
+
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .dialog-icon {
+      color: #3f51b5;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      background: #e8eaf6;
+      border-radius: 50%;
+      padding: 8px;
+      box-sizing: content-box;
+      flex-shrink: 0;
+    }
+
+    .header-testo {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a237e;
+      }
+
+      .header-subtitle {
+        font-size: 12px;
+        color: #888;
+        margin-top: 2px;
+      }
+    }
+
+    .close-btn {
+      color: #888;
+    }
+  }
+}
+
+mat-dialog-content {
+  padding-bottom: 8px;
+  max-height: 500px;
+}
+
+.loading, .nessun-dato {
+  text-align: center;
+  padding: 32px;
+  color: #999;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    display: block;
+    margin: 0 auto 12px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.riepilogo-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.dipendente-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 16px;
+  border-left: 4px solid #3f51b5;
+
+  .dipendente-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #3f51b5;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .dipendente-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .dipendente-nome {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1a237e;
+      }
+
+      .dipendente-reparto {
+        font-size: 12px;
+        color: #888;
+        text-transform: capitalize;
+      }
+    }
+
+    .ore-totali {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+
+      .ore-valore {
+        font-size: 20px;
+        font-weight: 700;
+        color: #3f51b5;
+      }
+
+      .ore-label {
+        font-size: 11px;
+        color: #888;
+      }
+    }
+  }
+
+  .statistiche {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    &.lavoro {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
+    &.ferie {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    &.malattia {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    &.riposo {
+      background: #fff3e0;
+      color: #e65100;
+    }
+  }
+}
+
+mat-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+@media (max-width: 600px) {
+  .dialog-container {
+    min-width: unset;
+    width: calc(100vw - 45px);
+    padding: 16px;
+
+  }
+}

@@ -2,11 +2,50 @@
 <mat-toolbar color="primary">
   <span class="toolbar-title">🎳 I Miei Turni</span>
   <span class="spacer"></span>
-  <span class="toolbar-user">{{ nomeUtente }}</span>
+  <span class="toolbar-user">Ciao, {{ nomeUtente }}</span>
+  <button class="btn-toolbar" (click)="apriCambioPassword()">
+    <mat-icon>lock</mat-icon> Cambia Password
+  </button>
+  <button class="btn-toolbar" (click)="apriProfilo()">
+    <mat-icon>person</mat-icon> Profilo
+  </button>
   <button mat-icon-button (click)="logout()" title="Logout">
     <mat-icon>logout</mat-icon>
   </button>
 </mat-toolbar>
+
+<!-- BANNER NOTIFICHE -->
+<div class="notifiche-container">
+  <div class="notifica-banner oggi" *ngIf="getTurnoOggi()">
+    <mat-icon>today</mat-icon>
+    <div class="notifica-testo">
+      <strong>Turno oggi — {{ formatDataLabel(oggi) }}</strong>
+      <span>
+        {{ getTurnoOggi().tipo === 'TURNO' ? 
+           formatOrario(getTurnoOggi().oraInizio) + ' - ' + formatOrario(getTurnoOggi().oraFine) : 
+           getTurnoOggi().tipo }}
+      </span>
+      <span class="notifica-nota" *ngIf="getTurnoOggi().nota">
+        <mat-icon>sticky_note_2</mat-icon> {{ getTurnoOggi().nota }}
+      </span>
+    </div>
+  </div>
+
+  <div class="notifica-banner domani" *ngIf="getTurnoDomani()">
+    <mat-icon>event</mat-icon>
+    <div class="notifica-testo">
+      <strong>Turno domani — {{ formatDataLabel(getDomani()) }}</strong>
+      <span>
+        {{ getTurnoDomani().tipo === 'TURNO' ? 
+           formatOrario(getTurnoDomani().oraInizio) + ' - ' + formatOrario(getTurnoDomani().oraFine) : 
+           getTurnoDomani().tipo }}
+      </span>
+      <span class="notifica-nota" *ngIf="getTurnoDomani().nota">
+        <mat-icon>sticky_note_2</mat-icon> {{ getTurnoDomani().nota }}
+      </span>
+    </div>
+  </div>
+</div>
 
 <div class="addetto-container">
 

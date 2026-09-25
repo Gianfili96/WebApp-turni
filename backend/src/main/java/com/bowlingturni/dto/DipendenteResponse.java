@@ -1,6 +1,7 @@
 package com.bowlingturni.dto;
 
 import com.bowlingturni.entity.Dipendente;
+import com.bowlingturni.entity.Reparto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,8 +15,8 @@ public class DipendenteResponse {
     private String telefono;
     private String email;
     private Boolean attivo;
+    private Reparto reparto;  // ← aggiungi
 
-    // Metodo factory statico per convertire l'entity in DTO
     public static DipendenteResponse fromEntity(Dipendente dipendente) {
         return DipendenteResponse.builder()
                 .id(dipendente.getId())
@@ -24,6 +25,7 @@ public class DipendenteResponse {
                 .telefono(dipendente.getTelefono())
                 .email(dipendente.getUser().getEmail())
                 .attivo(dipendente.getAttivo())
+                .reparto(dipendente.getReparto())  // ← aggiungi
                 .build();
     }
 }

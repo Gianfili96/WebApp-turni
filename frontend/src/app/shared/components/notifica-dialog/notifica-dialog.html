@@ -1,0 +1,65 @@
+<div class="dialog-container">
+
+  <div class="dialog-header">
+    <mat-icon class="dialog-icon">notifications</mat-icon>
+    <h2>Invia Notifica Turni</h2>
+    <button mat-icon-button (click)="annulla()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <p class="dialog-subtitle">
+      Seleziona i dipendenti del reparto <strong>{{ data.repartoLabel }}</strong> a cui inviare la notifica dei turni.
+    </p>
+
+    <mat-divider></mat-divider>
+
+    <!-- Seleziona tutti -->
+    <div class="seleziona-tutti">
+      <mat-checkbox
+        [checked]="tuttiSelezionati"
+        (change)="toggleTutti()"
+        color="primary">
+        <strong>Seleziona tutti</strong>
+      </mat-checkbox>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Lista dipendenti -->
+    <div class="dipendenti-lista">
+      <div *ngFor="let dipendente of data.dipendenti" class="dipendente-row">
+        <mat-checkbox
+          [checked]="dipendentiSelezionati[dipendente.id]"
+          (change)="toggleDipendente(dipendente.id)"
+          color="primary">
+          <div class="dipendente-info">
+            <div class="avatar">{{ dipendente.nome[0] }}{{ dipendente.cognome[0] }}</div>
+            <div class="dipendente-dettagli">
+              <span class="dipendente-nome">{{ dipendente.nome }} {{ dipendente.cognome }}</span>
+              <span class="dipendente-email">{{ dipendente.email }}</span>
+            </div>
+          </div>
+        </mat-checkbox>
+      </div>
+    </div>
+
+    <div class="riepilogo">
+      <mat-icon>info</mat-icon>
+      <span>{{ getSelezionatiCount() }} dipendenti selezionati riceveranno la notifica</span>
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-stroked-button (click)="annulla()">
+      Annulla
+    </button>
+    <button mat-raised-button color="primary" (click)="conferma()"
+            [disabled]="getSelezionatiCount() === 0">
+      <mat-icon>send</mat-icon> Invia Notifica
+    </button>
+  </mat-dialog-actions>
+
+</div>

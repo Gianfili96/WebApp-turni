@@ -38,4 +38,12 @@ export class TurniService {
   eliminaTurno(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
   }
+
+  notificaTurniReparto(reparto: string, dal: string, al: string, dipendentiIds: number[]): Observable<void> {
+  const params = new HttpParams()
+    .set('reparto', reparto)
+    .set('dal', dal)
+    .set('al', al);
+  return this.http.post<void>(`${this.API_URL}/notifica-reparto`, dipendentiIds, { params });
+}
 }

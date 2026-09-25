@@ -54,4 +54,7 @@ export class AuthService {
     const user = localStorage.getItem(this.USER_KEY);
     return user ? JSON.parse(user) : null;
   }
+  cambiaPassword(request: any): Observable<any> {
+  return this.http.put(`${this.API_URL}/cambio-password`, request);
+  }
 }
