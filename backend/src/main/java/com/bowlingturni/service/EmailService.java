@@ -104,7 +104,7 @@ public class EmailService {
                             </div>
                             <p>Clicca il bottone qui sotto per impostare la tua nuova password:</p>
                             <div class="btn-container">
-                                <a href="%s/cambio-password" class="btn">🔐 Cambia Password</a>
+                                <a href="%s/cambio-password" class="btn" style="display: inline-block; background: #3f51b5; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 16px;">🔐 Cambia Password</a>
                             </div>
                         </div>
                         <div class="footer">
