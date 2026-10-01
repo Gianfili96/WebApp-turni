@@ -260,17 +260,26 @@ export class DashboardResponsabileComponent implements OnInit {
   } else {
     if (this.turnoInModifica) {
       this.turniService.modificaTurno(this.turnoInModifica.id, formValue).subscribe({
-        next: () => {
-          this.mostraSuccesso('Turno modificato con successo');
+        next: (response) => {
+          if (response.sovrapposizione) {
+            this.mostraErrore('⚠️ Turno salvato con avviso: il dipendente ha già un turno in questo intervallo!');
+          } else {
+            this.mostraSuccesso('Turno modificato con successo');
+          }
           this.chiudiForm();
           setTimeout(() => this.caricaTurni(), 300);
         },
         error: (err) => this.mostraErrore(err.error?.messaggio || 'Errore nella modifica')
       });
     } else {
+      // Creazione singola
       this.turniService.creaTurno(formValue).subscribe({
-        next: () => {
-          this.mostraSuccesso('Turno creato con successo');
+        next: (response) => {
+          if (response.sovrapposizione) {
+            this.mostraErrore('⚠️ Turno salvato con avviso: il dipendente ha già un turno in questo intervallo!');
+          } else {
+            this.mostraSuccesso('Turno creato con successo');
+          }
           this.chiudiForm();
           setTimeout(() => this.caricaTurni(), 300);
         },

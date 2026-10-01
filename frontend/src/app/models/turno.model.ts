@@ -12,6 +12,7 @@ export interface Turno {
   oraFine: string;
   nota?: string;
   tipo: TipoTurno;
+  sovrapposizione?: boolean;
 }
 
 export interface TurnoRequest {
