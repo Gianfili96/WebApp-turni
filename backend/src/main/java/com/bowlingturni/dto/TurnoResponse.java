@@ -3,11 +3,13 @@ package com.bowlingturni.dto;
 import com.bowlingturni.entity.Turno;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Getter
+@Setter
 @Builder
 public class TurnoResponse {
 
@@ -21,6 +23,7 @@ public class TurnoResponse {
     private LocalTime oraFine;
     private String nota;
     private Turno.TipoTurno tipo;
+    private Boolean sovrapposizione;
 
     // Metodo factory statico per convertire l'entity in DTO
     public static TurnoResponse fromEntity(Turno turno) {
@@ -35,6 +38,7 @@ public class TurnoResponse {
                 .oraFine(turno.getOraFine())
                 .nota(turno.getNota())
                 .tipo(turno.getTipo())
+                .sovrapposizione(false)
                 .build();
     }
 }

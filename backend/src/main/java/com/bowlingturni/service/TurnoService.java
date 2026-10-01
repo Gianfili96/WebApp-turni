@@ -4,7 +4,6 @@ import com.bowlingturni.dto.TurnoRequest;
 import com.bowlingturni.dto.TurnoResponse;
 import com.bowlingturni.entity.Dipendente;
 import com.bowlingturni.entity.Turno;
-import com.bowlingturni.exception.SovrapposizioneTurnoException;
 import com.bowlingturni.repository.DipendenteRepository;
 import com.bowlingturni.repository.TurnoRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,7 @@ public class TurnoService {
 
     private final TurnoRepository      turnoRepository;
     private final DipendenteRepository dipendenteRepository;
-    private final EmailService         emailService;  // ← aggiungi
+    private final EmailService         emailService;
 
     // ----------------------------------------------------------------
     // READ
@@ -52,9 +51,7 @@ public class TurnoService {
         Dipendente dipendente = trovaDipendente(request.getDipendenteId());
         validaOrari(request);
 
-        if (request.getTipo() == Turno.TipoTurno.TURNO) {
-            controllaSovrapposizione(request, 0L);
-        }
+        boolean sovrapposizione = hasSovrapposizione(request, 0L);
 
         Turno turno = Turno.builder()
                 .dipendente(dipendente)
@@ -66,7 +63,9 @@ public class TurnoService {
                 .tipo(request.getTipo())
                 .build();
 
-        return TurnoResponse.fromEntity(turnoRepository.save(turno));
+        TurnoResponse response = TurnoResponse.fromEntity(turnoRepository.save(turno));
+        response.setSovrapposizione(sovrapposizione);
+        return response;
     }
 
     // ----------------------------------------------------------------
@@ -81,9 +80,7 @@ public class TurnoService {
         Dipendente dipendente = trovaDipendente(request.getDipendenteId());
         validaOrari(request);
 
-        if (request.getTipo() == Turno.TipoTurno.TURNO) {
-            controllaSovrapposizione(request, id);
-        }
+        boolean sovrapposizione = hasSovrapposizione(request, id);
 
         turno.setDipendente(dipendente);
         turno.setDataInizio(request.getDataInizio());
@@ -93,7 +90,9 @@ public class TurnoService {
         turno.setNota(request.getNota());
         turno.setTipo(request.getTipo());
 
-        return TurnoResponse.fromEntity(turnoRepository.save(turno));
+        TurnoResponse response = TurnoResponse.fromEntity(turnoRepository.save(turno));
+        response.setSovrapposizione(sovrapposizione);
+        return response;
     }
 
     // ----------------------------------------------------------------
@@ -163,19 +162,18 @@ public class TurnoService {
         }
     }
 
-    private void controllaSovrapposizione(TurnoRequest request, Long excludeId) {
+    private boolean hasSovrapposizione(TurnoRequest request, Long excludeId) {
+        if (request.getTipo() != Turno.TipoTurno.TURNO) return false;
+        if (request.getOraInizio() == null || request.getOraFine() == null) return false;
+
         LocalDateTime inizio = LocalDateTime.of(request.getDataInizio(), request.getOraInizio());
         LocalDateTime fine   = LocalDateTime.of(request.getDataFine(),   request.getOraFine());
 
-        boolean sovrapposto = turnoRepository.existsSovrapposizione(
+        return turnoRepository.existsSovrapposizione(
                 request.getDipendenteId(),
                 inizio,
                 fine,
                 excludeId
         );
-
-        if (sovrapposto) {
-            throw new SovrapposizioneTurnoException("Il dipendente ha già un turno in questo intervallo di orario");
-        }
     }
 }
