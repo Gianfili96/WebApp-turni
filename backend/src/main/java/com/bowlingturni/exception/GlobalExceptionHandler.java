@@ -2,6 +2,7 @@ package com.bowlingturni.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,6 +32,12 @@ public class GlobalExceptionHandler {
             SovrapposizioneTurnoException ex) {
 
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null);
+    }
+
+    // Accesso negato da @PreAuthorize (altrimenti finirebbe nel gestore RuntimeException come 400)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, "Accesso negato", null);
     }
 
     // Errori generici (es. entità non trovata)

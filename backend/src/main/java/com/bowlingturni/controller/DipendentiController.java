@@ -26,9 +26,9 @@ public class DipendentiController {
         return ResponseEntity.ok(dipendenteService.getTuttiAttivi());
     }
 
-    // Sia responsabile che addetto possono vedere un dipendente per ID
+    // Il responsabile vede chiunque, l'addetto solo il proprio profilo
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('RESPONSABILE') or hasRole('ADDETTO')")
+    @PreAuthorize("hasRole('RESPONSABILE') or @accessoDipendente.isProprio(#id, authentication)")
     public ResponseEntity<DipendenteResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(dipendenteService.getById(id));
     }
