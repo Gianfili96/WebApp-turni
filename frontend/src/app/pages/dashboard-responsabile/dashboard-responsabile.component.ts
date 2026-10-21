@@ -192,7 +192,8 @@ export class DashboardResponsabileComponent implements OnInit {
       oraInizio: turno.oraInizio,
       dataFine: turno.dataFine,
       oraFine: turno.oraFine,
-      nota: turno.nota
+      nota: turno.nota,
+      tipo: turno.tipo
     });
     this.showForm = true;
   }
