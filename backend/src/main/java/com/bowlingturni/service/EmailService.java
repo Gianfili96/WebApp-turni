@@ -9,6 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import java.io.IOException;
@@ -18,6 +22,16 @@ import java.io.IOException;
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+
+    // Nomi in italiano scritti qui: l'immagine Docker JRE potrebbe non avere i dati di localizzazione
+    private static final String[] GIORNI = {
+            "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"
+    };
+    private static final String[] MESI = {
+            "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
+            "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"
+    };
+    private static final DateTimeFormatter FORMATO_ORA = DateTimeFormatter.ofPattern("HH:mm");
 
     @Value("${sendgrid.api.key}")
     private String apiKey;
@@ -143,21 +157,37 @@ public class EmailService {
         }
     }
 
-    private String buildEmailNotificaTurni(String nomeDipendente,
+    // Visibilità di package per i test
+    String buildEmailNotificaTurni(String nomeDipendente,
                                            List<com.bowlingturni.entity.Turno> turni,
                                            String dal, String al) {
         StringBuilder righe = new StringBuilder();
         for (com.bowlingturni.entity.Turno turno : turni) {
-            String orario = turno.getOraInizio() != null
-                    ? turno.getOraInizio() + " - " + turno.getOraFine()
-                    : turno.getTipo().name();
+            String orario = turno.getOraInizio() != null && turno.getOraFine() != null
+                    ? formattaOra(turno.getOraInizio()) + " – " + formattaOra(turno.getOraFine())
+                    : "—";
+            boolean haNota = turno.getNota() != null && !turno.getNota().isBlank();
+            // Se c'è una nota, la riga del turno non ha il bordo: lo ha la riga della nota sotto
+            String bordo = haNota ? "none" : "1px solid #f0f0f0";
             righe.append(String.format("""
             <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">%s</td>
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">%s</td>
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">%s</td>
+                <td style="padding: 10px; border-bottom: %1$s;">%2$s</td>
+                <td style="padding: 10px; border-bottom: %1$s;">%3$s</td>
+                <td style="padding: 10px; border-bottom: %1$s;">%4$s</td>
             </tr>
-        """, turno.getDataInizio(), turno.getTipo().name(), orario));
+        """, bordo, formattaGiorno(turno.getDataInizio()), etichettaTipo(turno.getTipo()), orario));
+
+            if (haNota) {
+                righe.append(String.format("""
+            <tr>
+                <td colspan="3" style="padding: 0 10px 10px; border-bottom: 1px solid #f0f0f0;">
+                    <div style="background: #fff8e1; border-left: 4px solid #ffb300; border-radius: 4px; padding: 8px 12px; color: #5d4037; font-size: 13px;">
+                        📝 <strong>Nota:</strong> %s
+                    </div>
+                </td>
+            </tr>
+        """, escapeHtml(turno.getNota()).replace("\n", "<br>")));
+            }
         }
 
         return """
@@ -201,7 +231,10 @@ public class EmailService {
                                 %s
                             </tbody>
                         </table>
-                        <p style="margin-top: 24px;">Accedi all'app per vedere tutti i dettagli.</p>
+                        <p style="margin-top: 24px;">Accedi al gestionale turni per vedere tutti i dettagli.</p>
+                        <p style="margin: 16px 0 0;">
+                            <a href="%s" style="display: inline-block; background: #3f51b5; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Accedi al gestionale</a>
+                        </p>
                     </div>
                     <div class="footer">
                         <p>Questa email è stata inviata automaticamente dal sistema Bowling Turni. Non rispondere a questa email.</p>
@@ -209,7 +242,56 @@ public class EmailService {
                 </div>
             </body>
             </html>
-            """.formatted(nomeDipendente, dal, al, righe.toString());
+            """.formatted(escapeHtml(nomeDipendente), formattaData(dal, false),
+                          formattaData(al, true), righe.toString(), urlLogin());
+    }
+
+    // Pagina di login del gestionale, es. "http://sito/login" (app.url senza "/" finale)
+    private String urlLogin() {
+        String base = appUrl == null ? "" : appUrl.trim().replaceAll("/+$", "");
+        return escapeHtml(base + "/login");
+    }
+
+    // "Mercoledì 21 ottobre"
+    private static String formattaGiorno(LocalDate data) {
+        return GIORNI[data.getDayOfWeek().getValue() - 1] + " " + data.getDayOfMonth()
+                + " " + MESI[data.getMonthValue() - 1];
+    }
+
+    // Date del periodo, ricevute come "2026-10-19" → "19 ottobre" (o "19 ottobre 2026" con l'anno).
+    // Se non sono nel formato atteso restano come sono.
+    private static String formattaData(String data, boolean conAnno) {
+        try {
+            LocalDate d = LocalDate.parse(data);
+            String testo = d.getDayOfMonth() + " " + MESI[d.getMonthValue() - 1];
+            return conAnno ? testo + " " + d.getYear() : testo;
+        } catch (Exception e) {
+            return escapeHtml(data);
+        }
+    }
+
+    private static String formattaOra(LocalTime ora) {
+        return ora.format(FORMATO_ORA);
+    }
+
+    private static String etichettaTipo(com.bowlingturni.entity.Turno.TipoTurno tipo) {
+        return switch (tipo) {
+            case TURNO -> "Turno";
+            case FERIE -> "Ferie";
+            case MALATTIA -> "Malattia";
+            case RIPOSO -> "Riposo";
+        };
+    }
+
+    // Evita che testo libero (es. le note) inserisca HTML nell'email
+    private static String escapeHtml(String testo) {
+        if (testo == null) return "";
+        return testo
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }
 
