@@ -110,20 +110,26 @@
                 <span class="turno-orario">{{ etichettaTipo(turno.tipo) }}</span>
               </ng-template>
 
-              <button class="nota-badge" *ngIf="turno.nota"
-                      (click)="toggleNota(turno.id); $event.stopPropagation()"
-                      title="Vedi nota" aria-label="Vedi nota">
-                <mat-icon>sticky_note_2</mat-icon>
-              </button>
+              <!-- Notifica rossa: il turno ha una nota, visibile allargando il riquadro -->
+              <span class="nota-indicatore" *ngIf="turno.nota"
+                    title="Questo turno ha una nota" aria-label="Il turno ha una nota">1</span>
 
-              <!-- Azioni: compaiono sopra il turno al passaggio del mouse -->
+              <!-- Azioni: si aprono con un'animazione sotto l'orario al passaggio del mouse -->
               <div class="turno-actions">
-                <button class="btn-icon" (click)="apriFormModifica(turno)" title="Modifica" aria-label="Modifica turno">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button class="btn-icon danger" (click)="eliminaTurno(turno.id)" title="Elimina" aria-label="Elimina turno">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
+                <div class="turno-actions-inner">
+                  <button class="btn-icon nota" *ngIf="turno.nota"
+                          [class.attivo]="notaVisibile[turno.id]"
+                          (click)="toggleNota(turno.id); $event.stopPropagation()"
+                          title="Nota" aria-label="Vedi nota">
+                    <mat-icon>sticky_note_2</mat-icon>
+                  </button>
+                  <button class="btn-icon" (click)="apriFormModifica(turno); $event.stopPropagation()" title="Modifica" aria-label="Modifica turno">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button class="btn-icon danger" (click)="eliminaTurno(turno.id); $event.stopPropagation()" title="Elimina" aria-label="Elimina turno">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
               </div>
 
               <!-- Popup nota -->

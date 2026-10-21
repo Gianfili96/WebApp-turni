@@ -395,9 +395,12 @@ $tablet: 768px;
 .turno-chip {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  // Righe raggruppate al centro: la riga delle azioni chiusa non sposta l'orario
+  align-content: center;
   justify-content: center;
-  gap: 4px;
+  gap: 0 4px;
   min-height: 36px;
   padding: 6px 8px;
   margin-bottom: 4px;
@@ -420,51 +423,80 @@ $tablet: 768px;
     white-space: nowrap;
   }
 
-  // Azioni sovrapposte a destra, visibili al passaggio del mouse: non tolgono spazio all'orario
+  // Riga delle azioni sotto l'orario. L'altezza passa da 0 al contenuto con una transizione:
+  // grid-template-rows 0fr → 1fr anima l'altezza reale, cosa che display: none non permette.
   .turno-actions {
-    position: absolute;
-    top: 50%;
-    right: 4px;
-    display: flex;
-    gap: 2px;
-    padding: 2px;
-    border-radius: 8px;
-    background: t.$surface;
-    box-shadow: 0 2px 8px rgba(20, 24, 60, 0.15);
-    transform: translateY(-50%);
+    flex-basis: 100%;
+    display: grid;
+    grid-template-rows: 0fr;
     opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s;
+    transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+  }
+
+  .turno-actions-inner {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    min-height: 0;
+    overflow: hidden;
   }
 
   &:hover .turno-actions,
   &:focus-within .turno-actions {
+    grid-template-rows: 1fr;
     opacity: 1;
-    pointer-events: auto;
   }
-}
 
-// Schermi touch (tablet): niente hover, le azioni vanno sotto l'orario
-@media (hover: none) {
-  .turno-chip {
-    flex-wrap: wrap;
+  .turno-actions .btn-icon {
+    margin-top: 6px;
+    background: rgba(255, 255, 255, 0.75);
 
-    .turno-actions {
-      position: static;
-      flex-basis: 100%;
-      justify-content: flex-end;
-      padding: 0;
-      background: none;
-      box-shadow: none;
-      transform: none;
-      opacity: 1;
-      pointer-events: auto;
+    &.nota {
+      color: currentColor;
+    }
+
+    &.attivo {
+      background: #fff;
+      box-shadow: inset 0 0 0 1px currentColor;
     }
   }
 }
 
-.btn-icon,
-.nota-badge {
+// Notifica rossa accanto all'orario quando il turno ha una nota
+.nota-indicatore {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #e53935;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+// Schermi touch (tablet): niente hover, le azioni restano sempre visibili sotto
+@media (hover: none) {
+  .turno-chip .turno-actions {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+// Chi ha chiesto meno animazioni nel sistema operativo le vede comparire subito
+@media (prefers-reduced-motion: reduce) {
+  .turno-chip .turno-actions {
+    transition: none;
+  }
+}
+
+.btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -491,18 +523,6 @@ $tablet: 768px;
 
   &.danger:hover {
     color: #c62828;
-  }
-}
-
-.nota-badge {
-  width: 20px;
-  height: 20px;
-  color: currentColor;
-
-  mat-icon {
-    font-size: 15px;
-    width: 15px;
-    height: 15px;
   }
 }
 
