@@ -4,6 +4,7 @@ import com.bowlingturni.dto.CambioPasswordRequest;
 import com.bowlingturni.dto.LoginRequest;
 import com.bowlingturni.dto.LoginResponse;
 import com.bowlingturni.entity.User;
+import com.bowlingturni.exception.CredenzialiNonValideException;
 import com.bowlingturni.repository.UserRepository;
 import com.bowlingturni.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +23,11 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         // 1. Cerca l'utente per email
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Credenziali non valide"));
+                .orElseThrow(() -> new CredenzialiNonValideException("Credenziali non valide"));
 
         // 2. Verifica la password
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Credenziali non valide");
+            throw new CredenzialiNonValideException("Credenziali non valide");
         }
 
         Long dipendenteId = user.getDipendente() != null ? user.getDipendente().getId() : null;

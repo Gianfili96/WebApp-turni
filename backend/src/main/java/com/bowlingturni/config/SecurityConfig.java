@@ -4,6 +4,7 @@ import com.bowlingturni.security.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -38,12 +39,21 @@ public class SecurityConfig {
 
                 // Regole di accesso agli endpoint
                 .authorizeHttpRequests(auth -> auth
-                        // Login è pubblico
-                        .requestMatchers("/api/login").permitAll()
-                        // Tutto il resto richiede autenticazione
+                        // Login e cambio password al primo accesso sono pubblici
                         .requestMatchers("/api/login").permitAll()
                         .requestMatchers("/api/cambio-password-primo-accesso").permitAll()
+                        // Tutto il resto richiede autenticazione
                         .anyRequest().authenticated()
+                )
+
+                // Token mancante, scaduto o non valido → 401 (di default Spring risponderebbe 403)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"status\":401,\"messaggio\":\"Sessione scaduta o non valida\"}");
+                        })
                 )
 
                 // Sessione stateless — nessuna sessione HTTP, solo JWT

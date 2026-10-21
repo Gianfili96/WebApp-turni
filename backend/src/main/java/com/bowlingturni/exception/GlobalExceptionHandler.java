@@ -40,7 +40,19 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, "Accesso negato", null);
     }
 
-    // Errori generici (es. entità non trovata)
+    // Login fallito
+    @ExceptionHandler(CredenzialiNonValideException.class)
+    public ResponseEntity<Map<String, Object>> handleCredenzialiNonValide(CredenzialiNonValideException ex) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
+    }
+
+    // Entità non trovata (dipendente, turno)
+    @ExceptionHandler(RisorsaNonTrovataException.class)
+    public ResponseEntity<Map<String, Object>> handleNonTrovata(RisorsaNonTrovataException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
+    }
+
+    // Errori generici di business (es. email già registrata, orari non validi)
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
