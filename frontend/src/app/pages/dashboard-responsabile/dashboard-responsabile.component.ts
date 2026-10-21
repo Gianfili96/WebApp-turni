@@ -493,8 +493,11 @@ export class DashboardResponsabileComponent implements OnInit {
 
   notaVisibile: { [key: number]: boolean } = {};
 
+  // Apre la nota del turno (chiudendo le altre) o la chiude se già aperta
   toggleNota(turnoId: number): void {
-    this.notaVisibile[turnoId] = !this.notaVisibile[turnoId];
+    const aperta = this.notaVisibile[turnoId];
+    this.notaVisibile = {};
+    if (!aperta) this.notaVisibile[turnoId] = true;
   }
 
   notificaReparto(reparto: string): void {
@@ -535,7 +538,7 @@ export class DashboardResponsabileComponent implements OnInit {
   if (!elemento) return;
 
   // Nascondi i bottoni durante l'export
-  const bottoni = document.querySelectorAll('.turno-actions, .nota-badge, .turno-mobile-actions');
+  const bottoni = document.querySelectorAll('.turno-actions, .nota-indicatore, .turno-mobile-actions');
   bottoni.forEach(b => (b as HTMLElement).style.display = 'none');
 
 
