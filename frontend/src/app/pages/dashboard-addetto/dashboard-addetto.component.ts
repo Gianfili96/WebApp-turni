@@ -1,13 +1,12 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AppHeaderComponent, VoceMenu } from '../../shared/components/app-header/app-header';
 import { TurniService } from '../../core/services/turni.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Turno } from '../../models/turno.model';
+import { Turno, TipoTurno } from '../../models/turno.model';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CambioPasswordDialogComponent } from '../../shared/components/cambio-password-dialog/cambio-password-dialog';
 import { ProfiloDialogComponent } from '../../shared/components/profilo-dialog/profilo-dialog';
@@ -17,12 +16,11 @@ import { ProfiloDialogComponent } from '../../shared/components/profilo-dialog/p
   standalone: true,
   imports: [
     CommonModule,
-    MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatCardModule,
-    MatDividerModule,
-    MatDialogModule
+    MatProgressSpinnerModule,
+    MatDialogModule,
+    AppHeaderComponent
   ],
   templateUrl: './dashboard-addetto.component.html',
   styleUrls: ['./dashboard-addetto.component.scss']
@@ -37,12 +35,33 @@ export class DashboardAddettoComponent implements OnInit {
   oggi: Date = new Date();
 
   giorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+  giorniBrevi = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+
+  vociMenu: VoceMenu[] = [
+    { id: 'profilo',  label: 'Profilo',         icona: 'person_outline' },
+    { id: 'password', label: 'Cambia password', icona: 'lock_outline' },
+    { id: 'esci',     label: 'Esci',            icona: 'logout' }
+  ];
+
+  private readonly etichetteTipo: Record<TipoTurno, string> = {
+    TURNO: 'Turno',
+    FERIE: 'Ferie',
+    MALATTIA: 'Malattia',
+    RIPOSO: 'Riposo'
+  };
+
+  private readonly iconeTipo: Record<TipoTurno, string> = {
+    TURNO: 'schedule',
+    FERIE: 'beach_access',
+    MALATTIA: 'medical_services',
+    RIPOSO: 'weekend'
+  };
 
   constructor(
     private turniService: TurniService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private dialog: MatDialog 
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -80,6 +99,14 @@ export class DashboardAddettoComponent implements OnInit {
     this.impostaSettimana(nuovaData);
   }
 
+  tornaAOggi(): void {
+    this.impostaSettimana(new Date());
+  }
+
+  isSettimanaCorrente(): boolean {
+    return this.settimanaCorrente.some(g => this.isOggi(g));
+  }
+
   caricaTurni(): void {
     const user = this.authService.getCurrentUser();
     if (!user) return;
@@ -94,7 +121,10 @@ export class DashboardAddettoComponent implements OnInit {
         this.loading = false;
         this.cdr.detectChanges();
       },
-      error: () => this.loading = false
+      error: () => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -106,6 +136,12 @@ export class DashboardAddettoComponent implements OnInit {
   isOggi(data: Date): boolean {
     const oggi = new Date();
     return data.toDateString() === oggi.toDateString();
+  }
+
+  isPassato(data: Date): boolean {
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+    return data < oggi;
   }
 
   logout(): void {
@@ -124,63 +160,112 @@ export class DashboardAddettoComponent implements OnInit {
   }
 
   formatDataLabel(data: Date): string {
-    return data.toLocaleDateString('it-IT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+    return data.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
   }
 
-  getColoreTurno(tipo: string): string {
-    switch(tipo) {
-      case 'FERIE':    return '#4caf50';
-      case 'MALATTIA': return '#f44336';
-      case 'RIPOSO':   return '#ff9800';
-      default:         return '#3f51b5';
-    }
+  // Es. "13 – 19 ottobre 2026" oppure "27 ottobre – 2 novembre 2026"
+  formatSettimana(): string {
+    if (this.settimanaCorrente.length < 7) return '';
+    const inizio = this.settimanaCorrente[0];
+    const fine = this.settimanaCorrente[6];
+    const mese = (d: Date) => d.toLocaleDateString('it-IT', { month: 'long' });
+    const inizioStr = inizio.getMonth() === fine.getMonth()
+      ? `${inizio.getDate()}`
+      : `${inizio.getDate()} ${mese(inizio)}`;
+    return `${inizioStr} – ${fine.getDate()} ${mese(fine)} ${fine.getFullYear()}`;
+  }
+
+  etichettaTipo(tipo: TipoTurno): string {
+    return this.etichetteTipo[tipo] ?? tipo;
+  }
+
+  iconaTipo(tipo: TipoTurno): string {
+    return this.iconeTipo[tipo] ?? 'event';
+  }
+
+  // Durata in minuti, anche per i turni a cavallo della mezzanotte
+  private durataMinuti(turno: Turno): number {
+    if (turno.tipo !== 'TURNO' || !turno.oraInizio || !turno.oraFine) return 0;
+    const inizio = new Date(`${turno.dataInizio}T${turno.oraInizio}`);
+    const fine = new Date(`${turno.dataFine}T${turno.oraFine}`);
+    return Math.max(0, (fine.getTime() - inizio.getTime()) / 60000);
+  }
+
+  formatDurata(minuti: number): string {
+    const ore = Math.floor(minuti / 60);
+    const min = Math.round(minuti % 60);
+    return min ? `${ore}h ${min}m` : `${ore}h`;
+  }
+
+  durataTurno(turno: Turno): string {
+    return this.formatDurata(this.durataMinuti(turno));
+  }
+
+  oreSettimana(): string {
+    return this.formatDurata(this.turni.reduce((tot, t) => tot + this.durataMinuti(t), 0));
+  }
+
+  numeroTurniSettimana(): number {
+    return this.turni.filter(t => t.tipo === 'TURNO').length;
+  }
+
+  descrizioneTurno(turno: Turno | null): string {
+    if (!turno) return 'Libero';
+    return turno.tipo === 'TURNO'
+      ? `${this.formatOrario(turno.oraInizio)} – ${this.formatOrario(turno.oraFine)}`
+      : this.etichettaTipo(turno.tipo);
+  }
+
+  onVoceMenu(id: string): void {
+    if (id === 'profilo') this.apriProfilo();
+    if (id === 'password') this.apriCambioPassword();
+    if (id === 'esci') this.logout();
+  }
+
+  getNome(): string {
+    return this.nomeUtente.split(' ')[0] || '';
   }
 
   apriCambioPassword(): void {
-  this.dialog.open(CambioPasswordDialogComponent, {
-    width: '90vw',
-    maxWidth: '480px',
-    disableClose: true
-  });
-}
+    this.dialog.open(CambioPasswordDialogComponent, {
+      width: '90vw',
+      maxWidth: '480px',
+      disableClose: true
+    });
+  }
 
-apriProfilo(): void {
-  this.dialog.open(ProfiloDialogComponent, {
-    width: '90vw',
-    maxWidth: '480px'
-  });
-}
+  apriProfilo(): void {
+    this.dialog.open(ProfiloDialogComponent, {
+      width: '90vw',
+      maxWidth: '480px'
+    });
+  }
 
   turniOggiDomani: Turno[] = [];
 
   caricaTurniOggiDomani(): void {
-  const user = this.authService.getCurrentUser();
-  console.log('User:', user);
-  console.log('DipendenteId:', user?.dipendenteId);
-  if (!user) return;
+    const user = this.authService.getCurrentUser();
+    if (!user) return;
 
-  const oggi = this.formatData(new Date());
-  const domani = new Date();
-  domani.setDate(domani.getDate() + 1);
-  const domaniStr = this.formatData(domani);
-  
-  console.log('Dal:', oggi, 'Al:', domaniStr);
+    const oggi = this.formatData(new Date());
+    const domani = new Date();
+    domani.setDate(domani.getDate() + 1);
+    const domaniStr = this.formatData(domani);
 
-  this.turniService.getTurniDipendente(user.dipendenteId, oggi, domaniStr).subscribe({
-    next: (data) => {
-      console.log('Turni oggi/domani:', data);
-      this.turniOggiDomani = data;
-      this.cdr.detectChanges();
-    }
-  });
-}
+    this.turniService.getTurniDipendente(user.dipendenteId, oggi, domaniStr).subscribe({
+      next: (data) => {
+        this.turniOggiDomani = data;
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
-  getTurnoOggi(): any {
+  getTurnoOggi(): Turno | null {
     const oggi = this.formatData(new Date());
     return this.turniOggiDomani.find(t => t.dataInizio === oggi) || null;
   }
 
-  getTurnoDomani(): any {
+  getTurnoDomani(): Turno | null {
     const domani = new Date();
     domani.setDate(domani.getDate() + 1);
     return this.turniOggiDomani.find(t => t.dataInizio === this.formatData(domani)) || null;

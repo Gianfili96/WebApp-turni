@@ -4,6 +4,7 @@ import com.bowlingturni.dto.TurnoRequest;
 import com.bowlingturni.dto.TurnoResponse;
 import com.bowlingturni.entity.Dipendente;
 import com.bowlingturni.entity.Turno;
+import com.bowlingturni.exception.RisorsaNonTrovataException;
 import com.bowlingturni.repository.DipendenteRepository;
 import com.bowlingturni.repository.TurnoRepository;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +76,7 @@ public class TurnoService {
     @Transactional
     public TurnoResponse modificaTurno(Long id, TurnoRequest request) {
         Turno turno = turnoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Turno non trovato con id: " + id));
+                .orElseThrow(() -> new RisorsaNonTrovataException("Turno non trovato con id: " + id));
 
         Dipendente dipendente = trovaDipendente(request.getDipendenteId());
         validaOrari(request);
@@ -102,7 +103,7 @@ public class TurnoService {
     @Transactional
     public void eliminaTurno(Long id) {
         if (!turnoRepository.existsById(id)) {
-            throw new RuntimeException("Turno non trovato con id: " + id);
+            throw new RisorsaNonTrovataException("Turno non trovato con id: " + id);
         }
         turnoRepository.deleteById(id);
     }
@@ -144,7 +145,7 @@ public class TurnoService {
 
     private Dipendente trovaDipendente(Long dipendenteId) {
         return dipendenteRepository.findById(dipendenteId)
-                .orElseThrow(() -> new RuntimeException("Dipendente non trovato con id: " + dipendenteId));
+                .orElseThrow(() -> new RisorsaNonTrovataException("Dipendente non trovato con id: " + dipendenteId));
     }
 
     private void validaOrari(TurnoRequest request) {

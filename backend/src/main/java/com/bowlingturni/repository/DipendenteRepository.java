@@ -15,4 +15,7 @@ public interface DipendenteRepository extends JpaRepository<Dipendente, Long> {
 
     // Dipendente collegato a un determinato user
     Optional<Dipendente> findByUserId(Long userId);
+
+    // Verifica che il dipendente appartenga all'utente con questa email
+    boolean existsByIdAndUser_Email(Long id, String email);
 }

@@ -1,0 +1,30 @@
+// Colori e misure condivisi tra login e dashboard
+
+$indigo: #3f51b5;
+$indigo-dark: #1a237e;
+$indigo-light: #e8eaf6;
+
+$bg: #f6f7fb;
+$surface: #ffffff;
+$border: #e6e8f0;
+$text: #1c1f33;
+$text-muted: #5f6478;
+
+$header-gradient: linear-gradient(160deg, $indigo 0%, $indigo-dark 100%);
+
+// Colori per tipo di turno: [testo/icona, sfondo]
+$tipi: (
+  turno:    (#3f51b5, #eef0fb),
+  ferie:    (#2e7d32, #e8f5e9),
+  malattia: (#c62828, #fdecea),
+  riposo:   (#e65100, #fff3e0),
+);
+
+// Colori per reparto: [testo/icona, sfondo] (diversi da quelli dei turni)
+$reparti: (
+  addetti_servizi: (#00838f, #e0f4f5),
+  cassa:           (#7b1fa2, #f3e5f5),
+  meccanico:       (#ef6c00, #fff0e0),
+);
+
+$mobile: 600px;

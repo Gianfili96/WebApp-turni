@@ -1,74 +1,331 @@
-.login-container {
+@use '@angular/material' as mat;
+
+$indigo: #3f51b5;
+$indigo-dark: #1a237e;
+$text: #1c1f33;
+$text-muted: #5f6478;
+
+.login-page {
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(380px, 5fr) 7fr;
+  background: #f6f7fb;
+}
+
+// ---- Pannello di presentazione ----
+
+.brand-panel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 56px;
+  color: #fff;
+  background: linear-gradient(160deg, $indigo 0%, $indigo-dark 100%);
+
+  // Cerchi decorativi (richiamano le palle da bowling)
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+  }
+
+  &::before {
+    width: 420px;
+    height: 420px;
+    right: -160px;
+    bottom: -140px;
+  }
+
+  &::after {
+    width: 220px;
+    height: 220px;
+    right: 90px;
+    top: -90px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .brand-name {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.brand-content {
+  max-width: 440px;
+
+  h2 {
+    font-size: 32px;
+    line-height: 1.25;
+    font-weight: 500;
+    margin: 0 0 16px;
+  }
+
+  > p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+    margin: 0 0 40px;
+  }
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  mat-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  strong {
+    display: block;
+    font-weight: 500;
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+
+  span {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.brand-footer {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+// ---- Form ----
+
+.form-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #3f51b5 0%, #1a237e 100%);
-  padding: 16px;
+  padding: 48px 24px;
 }
 
-.login-card {
-  background: white;
-  border-radius: 16px;
-  padding: 48px 40px;
+.form-wrapper {
   width: 100%;
-  max-width: 420px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 32px;
-
-  .login-icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: 8px;
-  }
+  max-width: 400px;
 
   h1 {
     font-size: 28px;
-    font-weight: 700;
-    color: #1a237e;
-    margin: 0 0 8px 0;
+    font-weight: 500;
+    color: $text;
+    margin: 0 0 8px;
   }
 
-  p {
-    color: #666;
-    margin: 0;
-    font-size: 14px;
+  .subtitle {
+    font-size: 15px;
+    color: $text-muted;
+    margin: 0 0 32px;
+  }
+}
+
+.brand-mobile {
+  display: none;
+  margin-bottom: 32px;
+  color: $indigo-dark;
+
+  .logo {
+    background: $indigo;
   }
 }
 
 .full-width {
   width: 100%;
-  margin-bottom: 8px;
+}
+
+mat-form-field {
+  margin-bottom: 4px;
+
+  @include mat.form-field-overrides((
+    outlined-focus-outline-color: $indigo,
+    outlined-focus-label-text-color: $indigo,
+  ));
+
+  mat-icon[matPrefix] {
+    color: $text-muted;
+    margin: 0 4px 0 12px;
+  }
 }
 
 .login-btn {
   height: 48px;
-  font-size: 16px;
   margin-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+
+  @include mat.button-overrides((
+    filled-container-color: $indigo,
+    filled-label-text-color: #fff,
+    filled-container-shape: 10px,
+  ));
+
+  &:not(:disabled):hover {
+    @include mat.button-overrides((
+      filled-container-color: $indigo-dark,
+    ));
+  }
+
+  mat-spinner {
+    margin: 0 auto;
+    --mat-progress-spinner-active-indicator-color: #fff;
+  }
 }
 
 .error-message {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #f44336;
+  color: #b3261e;
   font-size: 14px;
-  margin-bottom: 8px;
-  padding: 8px 12px;
-  background: #ffebee;
-  border-radius: 8px;
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  background: #fdecea;
+  border: 1px solid #f6c7c3;
+  border-radius: 10px;
 
   mat-icon {
     font-size: 18px;
     width: 18px;
     height: 18px;
+  }
+}
+
+.first-access {
+  margin: 28px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: $text-muted;
+
+  a {
+    display: inline-block;
+    margin-left: 4px;
+    color: $indigo;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ---- Schermi piccoli: card centrata su sfondo indaco ----
+
+@media (max-width: 900px) {
+  .login-page {
+    grid-template-columns: 1fr;
+    background: linear-gradient(160deg, $indigo 0%, $indigo-dark 100%);
+  }
+
+  .brand-panel {
+    display: none;
+  }
+
+  .form-panel {
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 32px 20px;
+
+    // Stessi cerchi decorativi del pannello desktop
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    &::before {
+      width: 340px;
+      height: 340px;
+      right: -150px;
+      bottom: -120px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &::after {
+      width: 200px;
+      height: 200px;
+      left: -80px;
+      top: -70px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  .form-wrapper {
+    position: relative;
+    z-index: 1;
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px 24px 28px;
+    box-shadow: 0 20px 48px rgba(10, 16, 70, 0.35);
+
+    h1 {
+      font-size: 24px;
+    }
+
+    .subtitle {
+      margin-bottom: 24px;
+    }
+  }
+
+  .brand-mobile {
+    display: flex;
+    margin-bottom: 24px;
+  }
+
+  .first-access {
+    margin-top: 20px;
   }
 }

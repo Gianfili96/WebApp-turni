@@ -4,6 +4,7 @@ import com.bowlingturni.dto.DipendenteResponse;
 import com.bowlingturni.dto.RegistrazioneDipendenteRequest;
 import com.bowlingturni.entity.Dipendente;
 import com.bowlingturni.entity.User;
+import com.bowlingturni.exception.RisorsaNonTrovataException;
 import com.bowlingturni.repository.DipendenteRepository;
 import com.bowlingturni.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class DipendenteService {
     public DipendenteResponse getById(Long id) {
         return dipendenteRepository.findById(id)
                 .map(DipendenteResponse::fromEntity)
-                .orElseThrow(() -> new RuntimeException("Dipendente non trovato con id: " + id));
+                .orElseThrow(() -> new RisorsaNonTrovataException("Dipendente non trovato con id: " + id));
     }
 
     // Registra un nuovo dipendente
@@ -77,7 +78,7 @@ public class DipendenteService {
     @Transactional
     public DipendenteResponse modificaDipendente(Long id, RegistrazioneDipendenteRequest request) {
         Dipendente dipendente = dipendenteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Dipendente non trovato con id: " + id));
+                .orElseThrow(() -> new RisorsaNonTrovataException("Dipendente non trovato con id: " + id));
 
         dipendente.setNome(request.getNome());
         dipendente.setCognome(request.getCognome());
@@ -108,7 +109,7 @@ public class DipendenteService {
     @Transactional
     public void eliminaDipendente(Long id) {
         Dipendente dipendente = dipendenteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Dipendente non trovato con id: " + id));
+                .orElseThrow(() -> new RisorsaNonTrovataException("Dipendente non trovato con id: " + id));
 
         User user = dipendente.getUser();
         dipendenteRepository.delete(dipendente);

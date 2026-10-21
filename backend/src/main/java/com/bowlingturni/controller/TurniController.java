@@ -31,10 +31,10 @@ public class TurniController {
         return ResponseEntity.ok(turnoService.getTurniSettimana(dal, al));
     }
 
-    // Turni di un dipendente — accessibile anche all'addetto
+    // Turni di un dipendente — l'addetto può vedere solo i propri
     // Esempio: GET /api/turni/dipendente/1?dal=2025-06-16&al=2025-06-22
     @GetMapping("/dipendente/{dipendenteId}")
-    @PreAuthorize("hasRole('RESPONSABILE') or hasRole('ADDETTO')")
+    @PreAuthorize("hasRole('RESPONSABILE') or @accessoDipendente.isProprio(#dipendenteId, authentication)")
     public ResponseEntity<List<TurnoResponse>> getTurniDipendente(
             @PathVariable Long dipendenteId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dal,

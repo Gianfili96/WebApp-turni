@@ -45,7 +45,26 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) return false;
+    if (this.isTokenScaduto(token)) {
+      // Pulisce la sessione vecchia senza navigare: ci pensano le guard
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.USER_KEY);
+      this.currentUserSubject.next(null);
+      return false;
+    }
+    return true;
+  }
+  // Legge il campo "exp" (secondi) dal payload del JWT
+  private isTokenScaduto(token: string): boolean {
+    try {
+      const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const { exp } = JSON.parse(atob(payload));
+      return typeof exp === 'number' && exp * 1000 <= Date.now();
+    } catch {
+      return true;
+    }
   }
   isResponsabile(): boolean {
     return this.getCurrentUser()?.ruolo === 'RESPONSABILE';
