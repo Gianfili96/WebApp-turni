@@ -1,23 +1,19 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDividerModule } from '@angular/material/divider';
 import { DipendentiService } from '../../core/services/dipendenti.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Dipendente } from '../../models/turno.model';
-import { Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfermaDialogComponent } from '../../shared/components/conferma-dialog/conferma-dialog';
+import { ProfiloAdminDialogComponent } from '../../shared/components/profilo-admin-dialog/profilo-admin-dialog';
+import { AppHeaderComponent, LinkNavigazione, VoceMenu } from '../../shared/components/app-header/app-header';
 
 @Component({
   selector: 'app-gestione-dipendenti',
@@ -25,18 +21,14 @@ import { ConfermaDialogComponent } from '../../shared/components/conferma-dialog
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatTableModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatSnackBarModule,
-    MatCardModule,
-    MatChipsModule,
-    MatDividerModule,
-    MatDialogModule
+    MatDialogModule,
+    AppHeaderComponent
   ],
   templateUrl: './gestione-dipendenti.html',
   styleUrls: ['./gestione-dipendenti.scss']
@@ -50,10 +42,24 @@ export class GestioneDipendentiComponent implements OnInit {
   hidePassword = true;
 
   reparti = [
-    { value: 'ADDETTI_SERVIZI',   label: 'Addetti ai Servizi' },
-    { value: 'CASSA',     label: 'Cassa' },
-    { value: 'MECCANICO', label: 'Meccanico' }
+    { value: 'ADDETTI_SERVIZI', label: 'Addetti ai Servizi', breve: 'Servizi',   icona: 'cleaning_services' },
+    { value: 'CASSA',           label: 'Cassa',              breve: 'Cassa',     icona: 'point_of_sale' },
+    { value: 'MECCANICO',       label: 'Meccanico',          breve: 'Meccanico', icona: 'build' }
   ];
+
+  links: LinkNavigazione[] = [
+    { label: 'Turni',      route: '/dashboard',  icona: 'calendar_month' },
+    { label: 'Dipendenti', route: '/dipendenti', icona: 'group' }
+  ];
+
+  vociMenu: VoceMenu[] = [
+    { id: 'profilo', label: 'Il mio profilo', icona: 'manage_accounts' },
+    { id: 'esci',    label: 'Esci',           icona: 'logout' }
+  ];
+
+  // Filtri della lista
+  ricerca = '';
+  filtroReparto = '';
 
   registrazioneForm: FormGroup;
 
@@ -62,7 +68,6 @@ export class GestioneDipendentiComponent implements OnInit {
     private authService: AuthService,
     private fb: FormBuilder,
     private snackBar: MatSnackBar,
-    private router: Router,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog
   ) {
@@ -113,6 +118,7 @@ export class GestioneDipendentiComponent implements OnInit {
         error: (err) => {
           this.mostraErrore(err.error?.messaggio || 'Errore nella modifica');
           this.loading = false;
+          this.cdr.detectChanges();
         }
       });
     } else {
@@ -126,6 +132,7 @@ export class GestioneDipendentiComponent implements OnInit {
         error: (err) => {
           this.mostraErrore(err.error?.messaggio || 'Errore nella registrazione');
           this.loading = false;
+          this.cdr.detectChanges();
         }
       });
     }
@@ -187,17 +194,37 @@ export class GestioneDipendentiComponent implements OnInit {
     return this.reparti.find(r => r.value === reparto)?.label || reparto;
   }
 
-  getRepartoColore(reparto: string): string {
-    switch(reparto) {
-      case 'PULIZIE':   return '#3f51b5';
-      case 'CASSA':     return '#4caf50';
-      case 'MECCANICO': return '#ff9800';
-      default:          return '#666';
-    }
+  getIniziali(d: Dipendente): string {
+    return `${d.nome?.[0] ?? ''}${d.cognome?.[0] ?? ''}`.toUpperCase();
   }
 
-  tornaAllaDashboard(): void {
-    this.router.navigate(['/dashboard']);
+  contaPerReparto(reparto: string): number {
+    return this.dipendenti.filter(d => d.reparto === reparto).length;
+  }
+
+  dipendentiFiltrati(): Dipendente[] {
+    const testo = this.ricerca.trim().toLowerCase();
+    return this.dipendenti.filter(d =>
+      (!this.filtroReparto || d.reparto === this.filtroReparto) &&
+      (!testo || `${d.nome} ${d.cognome} ${d.email}`.toLowerCase().includes(testo)));
+  }
+
+  apriFormNuovo(): void {
+    this.dipendenteInModifica = null;
+    this.showForm = true;
+  }
+
+  onVoceMenu(id: string): void {
+    if (id === 'profilo') this.apriProfiloAdmin();
+    if (id === 'esci') this.logout();
+  }
+
+  apriProfiloAdmin(): void {
+    this.dialog.open(ProfiloAdminDialogComponent, {
+      width: '95vw',
+      maxWidth: '500px',
+      maxHeight: '90vh',
+    });
   }
 
   logout(): void {
