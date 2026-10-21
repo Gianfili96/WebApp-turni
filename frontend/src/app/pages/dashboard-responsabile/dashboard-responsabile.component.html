@@ -1,185 +1,222 @@
-<mat-toolbar color="primary">
-  <span class="toolbar-title">🎳 Bowling Turni</span>
-  <button mat-raised-button (click)="router.navigate(['/dipendenti'])"
-          style="background-color:white; color:#3f51b5; margin-left: 16px;">
-    <mat-icon>group</mat-icon> Dipendenti
-  </button>
-  <span class="spacer"></span>
-  <span class="toolbar-user">{{ nomeUtente }}</span>
-  <button mat-icon-button (click)="apriProfiloAdmin()" title="Il mio profilo">
-    <mat-icon>manage_accounts</mat-icon>
-  </button>
-  <button mat-icon-button (click)="logout()" title="Logout">
-    <mat-icon>logout</mat-icon>
-  </button>
-</mat-toolbar>
-
-<div class="dashboard-container">
-
-  <!-- NAVIGAZIONE SETTIMANA -->
-<div class="week-nav">
-  <button mat-icon-button (click)="settimanaPrecedente()">
-    <mat-icon>chevron_left</mat-icon>
-  </button>
-  <span class="week-label">
-    {{ formatDataLabel(settimanaCorrente[0]) }} - {{ formatDataLabel(settimanaCorrente[6]) }}
-  </span>
-  <button mat-icon-button (click)="settimanaSuccessiva()">
-    <mat-icon>chevron_right</mat-icon>
-  </button>
-  <button mat-raised-button color="accent" (click)="apriFormNuovoTurno()" class="btn-nuovo">
-    <mat-icon>add</mat-icon> Nuovo Turno
-  </button>
-</div>
-
-  <!-- TAB REPARTI -->
-<mat-tab-group animationDuration="200ms" class="reparti-tabs" (selectedIndexChange)="onTabChange($event)">
-  <mat-tab *ngFor="let reparto of reparti" [label]="reparto.label">
-
-    <!-- CALENDARIO PER REPARTO -->
-    <div class="calendario-wrapper">
-      <table class="calendario">
-        <thead>
-          <tr>
-            <th class="col-dipendente">Dipendente</th>
-            <th *ngFor="let giorno of settimanaCorrente; let i = index" class="col-giorno">
-              <div class="giorno-header">
-                <span class="giorno-nome">{{ giorni[i] }}</span>
-                <span class="giorno-data">{{ formatDataLabel(giorno) }}</span>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let dipendente of getDipendentiPerReparto(reparto.value)">
-            <td class="col-dipendente">
-              <div class="dipendente-info">
-                <mat-icon class="dipendente-icon">person</mat-icon>
-                <span>{{ dipendente.nome }} {{ dipendente.cognome }}</span>
-              </div>
-            </td>
-            <td *ngFor="let giorno of settimanaCorrente" class="col-cella"
-                (click)="apriFormNuovoTurno(dipendente.id, giorno)">
-              <div *ngFor="let turno of getTurniPerDipendenteEGiorno(dipendente.id, giorno)"
-                   class="turno-chip"
-                   [style.background-color]="getColoreTurno(turno.tipo)"
-                   (click)="$event.stopPropagation()">
-                <span class="turno-orario">
-                  {{ turno.oraInizio ? formatOrario(turno.oraInizio) + ' - ' + formatOrario(turno.oraFine) : turno.tipo }}
-                </span>
-                <div class="turno-actions">
-                  <div class="nota-badge" *ngIf="turno.nota"
-                      (click)="toggleNota(turno.id); $event.stopPropagation()"
-                      title="Clicca per vedere la nota">
-                    <mat-icon>sticky_note_2</mat-icon>
-                    <span class="badge">1</span>
-                  </div>
-                  <button class="btn-edit" (click)="apriFormModifica(turno)" title="Modifica">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button class="btn-delete" (click)="eliminaTurno(turno.id)" title="Elimina">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </div>
-                <!-- Popup nota -->
-                <div class="nota-popup" *ngIf="turno.nota && notaVisibile[turno.id]"
-                    (click)="$event.stopPropagation()">
-                  <div class="nota-popup-header">
-                    <mat-icon>sticky_note_2</mat-icon>
-                    <span>Nota</span>
-                    <button class="nota-close" (click)="toggleNota(turno.id); $event.stopPropagation()">
-                      <mat-icon>close</mat-icon>
-                    </button>
-                  </div>
-                  <p>{{ turno.nota }}</p>
-                </div>
-              </div>
-              <div class="cella-vuota" *ngIf="getTurniPerDipendenteEGiorno(dipendente.id, giorno).length === 0">
-                <mat-icon class="add-icon">add</mat-icon>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Nessun dipendente nel reparto -->
-          <tr *ngIf="getDipendentiPerReparto(reparto.value).length === 0">
-            <td [colSpan]="settimanaCorrente.length + 1" class="nessun-dipendente-row">
-              <mat-icon>group_off</mat-icon>
-              <span>Nessun dipendente in questo reparto</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-  </mat-tab>
-</mat-tab-group>
-
-<!-- CALENDARIO MOBILE -->
-<div class="calendario-mobile">
-  <div *ngFor="let giorno of settimanaCorrente; let i = index" class="giorno-mobile-card">
-    <div class="giorno-mobile-header">
-      <span class="giorno-mobile-nome">{{ giorni[i] }}</span>
-      <span class="giorno-mobile-data">{{ formatDataLabel(giorno) }}</span>
-    </div>
-
-    <div *ngFor="let dipendente of getDipendentiPerReparto(repartoAttivo)">
-      <div *ngFor="let turno of getTurniPerDipendenteEGiorno(dipendente.id, giorno)"
-           class="turno-mobile-item">
-        <div class="turno-mobile-dipendente">
-          <div class="avatar-mini">{{ dipendente.nome[0] }}{{ dipendente.cognome[0] }}</div>
-          <span class="turno-mobile-nome">{{ dipendente.nome }} {{ dipendente.cognome }}</span>
-        </div>
-        <div class="turno-mobile-orario"
-             [style.color]="getColoreTurno(turno.tipo)">
-          {{ turno.oraInizio ? formatOrario(turno.oraInizio) + ' - ' + formatOrario(turno.oraFine) : turno.tipo }}
-        </div>
-        <div class="turno-mobile-actions">
-          <span class="action-link edit" (click)="apriFormModifica(turno)">Modifica</span>
-          <span class="action-link delete" (click)="eliminaTurno(turno.id)">Elimina</span>
-        </div>
+<!-- INTESTAZIONE -->
+<app-header [nomeUtente]="nomeUtente" [links]="links" [vociMenu]="vociMenu"
+            (voceSelezionata)="onVoceMenu($event)">
+  <div class="hero">
+    <div class="hero-week">
+      <span class="eyebrow">Pianificazione turni</span>
+      <div class="week-nav">
+        <button class="nav-btn" (click)="settimanaPrecedente()" aria-label="Settimana precedente">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <h1>{{ formatSettimana() }}</h1>
+        <button class="nav-btn" (click)="settimanaSuccessiva()" aria-label="Settimana successiva">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        <button class="today-btn" *ngIf="!isSettimanaCorrente()" (click)="tornaAOggi()">Oggi</button>
       </div>
     </div>
 
-    <div class="giorno-mobile-vuoto"
-         *ngIf="getDipendentiPerReparto(repartoAttivo).every(d => getTurniPerDipendenteEGiorno(d.id, giorno).length === 0)">
-      <span>Nessun turno</span>
+    <button class="btn-nuovo" (click)="apriFormNuovoTurno()">
+      <mat-icon>add</mat-icon> Nuovo turno
+    </button>
+  </div>
+
+  <!-- Statistiche del reparto attivo -->
+  <div class="stats" *ngIf="statisticheReparto() as s">
+    <div class="stat">
+      <span class="stat-value">{{ s.dipendenti }}</span>
+      <span class="stat-label">Dipendenti</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ s.turni }}</span>
+      <span class="stat-label">Turni</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ s.ore }}</span>
+      <span class="stat-label">Ore pianificate</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ s.assenze }}</span>
+      <span class="stat-label">Ferie / malattia</span>
     </div>
   </div>
-</div>
+</app-header>
 
-<!-- AZIONI CALENDARIO -->
-<div class="azioni-calendario">
-  <span class="azioni-label">Reparto:</span>
-    <button mat-stroked-button [matMenuTriggerFor]="repartoMenu" class="reparto-menu-btn">
-    <mat-icon>work</mat-icon>
-        {{ reparti.find(r => r.value === repartoAzione)?.label }}
-        <mat-icon>arrow_drop_down</mat-icon>
+<main class="content">
+
+  <!-- BARRA STRUMENTI: reparto + azioni -->
+  <section class="toolbar">
+    <div class="reparti" role="tablist" aria-label="Reparto">
+      <button *ngFor="let r of reparti"
+              role="tab"
+              class="reparto-btn"
+              [class.active]="r.value === repartoAttivo"
+              [attr.aria-selected]="r.value === repartoAttivo"
+              (click)="selezionaReparto(r.value)">
+        <mat-icon>{{ r.icona }}</mat-icon>
+        <span class="reparto-label">{{ r.label }}</span>
+        <span class="reparto-label-breve">{{ r.breve }}</span>
+        <span class="reparto-count">{{ getDipendentiPerReparto(r.value).length }}</span>
       </button>
+    </div>
 
-      <mat-menu #repartoMenu="matMenu" [overlapTrigger]="false">
-        <button mat-menu-item *ngFor="let r of reparti" 
-                (click)="repartoAzione = r.value"
-                style="min-width: 215px;">
-          {{ r.label }}
+    <div class="azioni">
+      <button class="azione-btn azione-notifica" (click)="notificaReparto(repartoAttivo)">
+        <mat-icon>notifications_none</mat-icon><span class="lunga">Notifica turni</span><span class="breve">Notifica</span>
+      </button>
+      <button class="azione-btn azione-pdf" (click)="esportaPDF(repartoAttivo)">
+        <mat-icon>picture_as_pdf</mat-icon><span class="lunga">Esporta PDF</span><span class="breve">PDF</span>
+      </button>
+      <button class="azione-btn azione-riepilogo" (click)="apriRiepilogoOre()">
+        <mat-icon>schedule</mat-icon><span class="lunga">Riepilogo ore</span><span class="breve">Ore</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- CALENDARIO DESKTOP -->
+  <div class="calendario-wrapper">
+    <table class="calendario">
+      <thead>
+        <tr>
+          <th class="col-dipendente">Dipendente</th>
+          <th *ngFor="let giorno of settimanaCorrente; let i = index"
+              class="col-giorno" [class.oggi]="isOggi(giorno)">
+            <span class="giorno-nome">{{ giorniBrevi[i] }}</span>
+            <span class="giorno-numero">{{ giorno.getDate() }}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let dipendente of getDipendentiPerReparto(repartoAttivo)">
+          <td class="col-dipendente">
+            <div class="dipendente-info">
+              <span class="avatar">{{ getIniziali(dipendente) }}</span>
+              <div class="dipendente-testo">
+                <span class="dipendente-nome">{{ dipendente.nome }} {{ dipendente.cognome }}</span>
+                <span class="dipendente-ore">{{ oreDipendente(dipendente.id) }} questa settimana</span>
+              </div>
+            </div>
+          </td>
+          <td *ngFor="let giorno of settimanaCorrente" class="col-cella" [class.oggi]="isOggi(giorno)"
+              (click)="apriFormNuovoTurno(dipendente.id, giorno)">
+            <div *ngFor="let turno of getTurniPerDipendenteEGiorno(dipendente.id, giorno)"
+                 class="turno-chip"
+                 [ngClass]="'tipo-' + turno.tipo.toLowerCase()"
+                 (click)="$event.stopPropagation()">
+              <span class="turno-orario" *ngIf="turno.oraInizio; else etichetta">
+                <span>{{ formatOrario(turno.oraInizio) }}</span><span class="sep"> – </span><span>{{ formatOrario(turno.oraFine) }}</span>
+              </span>
+              <ng-template #etichetta>
+                <span class="turno-orario">{{ etichettaTipo(turno.tipo) }}</span>
+              </ng-template>
+
+              <button class="nota-badge" *ngIf="turno.nota"
+                      (click)="toggleNota(turno.id); $event.stopPropagation()"
+                      title="Vedi nota" aria-label="Vedi nota">
+                <mat-icon>sticky_note_2</mat-icon>
+              </button>
+
+              <!-- Azioni: compaiono sopra il turno al passaggio del mouse -->
+              <div class="turno-actions">
+                <button class="btn-icon" (click)="apriFormModifica(turno)" title="Modifica" aria-label="Modifica turno">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button class="btn-icon danger" (click)="eliminaTurno(turno.id)" title="Elimina" aria-label="Elimina turno">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+
+              <!-- Popup nota -->
+              <div class="nota-popup" *ngIf="turno.nota && notaVisibile[turno.id]"
+                   (click)="$event.stopPropagation()">
+                <div class="nota-popup-header">
+                  <mat-icon>sticky_note_2</mat-icon>
+                  <span>Nota</span>
+                  <button class="nota-close" (click)="toggleNota(turno.id); $event.stopPropagation()" aria-label="Chiudi">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+                <p>{{ turno.nota }}</p>
+              </div>
+            </div>
+
+            <div class="cella-vuota" *ngIf="getTurniPerDipendenteEGiorno(dipendente.id, giorno).length === 0">
+              <mat-icon>add</mat-icon>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Nessun dipendente nel reparto -->
+        <tr *ngIf="getDipendentiPerReparto(repartoAttivo).length === 0">
+          <td [colSpan]="settimanaCorrente.length + 1" class="nessun-dipendente-row">
+            <mat-icon>group_off</mat-icon>
+            <span>Nessun dipendente in questo reparto</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CALENDARIO MOBILE -->
+  <div class="calendario-mobile">
+    <article *ngFor="let giorno of settimanaCorrente; let i = index"
+             class="giorno-mobile-card" [class.oggi]="isOggi(giorno)">
+      <header class="giorno-mobile-header">
+        <div class="day-date">
+          <span class="day-name">{{ giorniBrevi[i] }}</span>
+          <span class="day-number">{{ giorno.getDate() }}</span>
+        </div>
+        <div class="giorno-mobile-titolo">
+          <span class="giorno-mobile-nome">{{ giorni[i] }}</span>
+          <span class="giorno-mobile-conteggio">
+            {{ turniGiornoReparto(giorno).length ? turniGiornoReparto(giorno).length + ' in programma' : 'Nessun turno' }}
+          </span>
+        </div>
+        <button class="btn-add-giorno" (click)="apriFormNuovoTurno(undefined, giorno)" aria-label="Aggiungi turno">
+          <mat-icon>add</mat-icon>
         </button>
-    </mat-menu>
-  <button mat-raised-button class="btn-notifica" (click)="notificaReparto(repartoAzione)">
-    <mat-icon>notifications</mat-icon> Notifica Turni
+      </header>
+
+      <div *ngFor="let item of turniGiornoReparto(giorno)" class="turno-mobile-item">
+        <span class="avatar">{{ getIniziali(item.dipendente) }}</span>
+        <div class="turno-mobile-testo">
+          <span class="turno-mobile-nome">{{ item.dipendente.nome }} {{ item.dipendente.cognome }}</span>
+          <span class="turno-mobile-nota" *ngIf="item.turno.nota">{{ item.turno.nota }}</span>
+        </div>
+        <span class="turno-mobile-orario" [ngClass]="'tipo-' + item.turno.tipo.toLowerCase()">
+          {{ item.turno.oraInizio ? formatOrario(item.turno.oraInizio) + ' – ' + formatOrario(item.turno.oraFine) : etichettaTipo(item.turno.tipo) }}
+        </span>
+        <div class="turno-mobile-actions">
+          <button class="btn-icon" (click)="apriFormModifica(item.turno)" aria-label="Modifica turno">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button class="btn-icon danger" (click)="eliminaTurno(item.turno.id)" aria-label="Elimina turno">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- LEGENDA -->
+  <footer class="legend">
+    <span class="legend-item tipo-turno"><i></i>Turno</span>
+    <span class="legend-item tipo-ferie"><i></i>Ferie</span>
+    <span class="legend-item tipo-malattia"><i></i>Malattia</span>
+    <span class="legend-item tipo-riposo"><i></i>Riposo</span>
+  </footer>
+
+  <!-- Pulsante nuovo turno (solo telefono) -->
+  <button class="fab" (click)="apriFormNuovoTurno()" aria-label="Nuovo turno">
+    <mat-icon>add</mat-icon>
   </button>
-  <button mat-raised-button class="btn-pdf-action" (click)="esportaPDF(repartoAzione)">
-    <mat-icon>picture_as_pdf</mat-icon> Esporta PDF
-  </button>
-  <button mat-raised-button class="btn-riepilogo" (click)="apriRiepilogoOre()">
-    <mat-icon>schedule</mat-icon> Riepilogo Ore
-  </button>
-</div>
 
   <!-- FORM TURNO -->
   <div class="form-overlay" *ngIf="showForm" (click)="chiudiForm()"></div>
-  <div class="form-panel" *ngIf="showForm">
+  <div class="form-panel" *ngIf="showForm" role="dialog" aria-modal="true">
     <div class="form-header">
-      <h2>{{ turnoInModifica ? 'Modifica Turno' : 'Nuovo Turno' }}</h2>
-      <button mat-icon-button (click)="chiudiForm()">
+      <h2>{{ turnoInModifica ? 'Modifica turno' : 'Nuovo turno' }}</h2>
+      <button mat-icon-button (click)="chiudiForm()" aria-label="Chiudi">
         <mat-icon>close</mat-icon>
       </button>
     </div>
@@ -196,6 +233,16 @@
         <mat-error>Seleziona un dipendente</mat-error>
       </mat-form-field>
 
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo" (selectionChange)="onTipoChange($event.value)">
+          <mat-option *ngFor="let t of tipiTurno" [value]="t.value">
+            {{ t.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error>Seleziona un tipo</mat-error>
+      </mat-form-field>
+
       <div class="form-row">
         <mat-form-field appearance="outline" class="half-width">
           <mat-label>Data inizio</mat-label>
@@ -203,7 +250,7 @@
           <mat-error>Obbligatorio</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="outline" class="half-width" *ngIf="isTurnoNormale()">
           <mat-label>Ora inizio</mat-label>
           <input matInput type="time" formControlName="oraInizio">
           <mat-error>Obbligatorio</mat-error>
@@ -224,19 +271,9 @@
         </mat-form-field>
       </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Tipo</mat-label>
-        <mat-select formControlName="tipo" (selectionChange)="onTipoChange($event.value)">
-          <mat-option *ngFor="let t of tipiTurno" [value]="t.value">
-            {{ t.label }}
-          </mat-option>
-        </mat-select>
-        <mat-error>Seleziona un tipo</mat-error>
-      </mat-form-field>
-
       <!-- Selettore giorni multipli -->
       <div class="giorni-selector" *ngIf="!turnoInModifica">
-        <label class="giorni-label">Ripeti nei giorni:</label>
+        <label class="giorni-label">Ripeti nei giorni</label>
         <div class="giorni-buttons">
           <button *ngFor="let giorno of giorniSettimanaForm"
                   type="button"
@@ -252,9 +289,9 @@
       </div>
 
       <!-- Tipo giorno libero - visibile solo se ci sono giorni non selezionati -->
-      <div class="giorni-liberi-selector" 
-          *ngIf="!turnoInModifica && giorniSelezionati.length > 0 && giorniSelezionati.length < 7">
-        <label class="giorni-label">Giorni non selezionati:</label>
+      <div class="giorni-liberi-selector"
+           *ngIf="!turnoInModifica && giorniSelezionati.length > 0 && giorniSelezionati.length < 7">
+        <label class="giorni-label">Negli altri giorni</label>
         <div class="giorni-liberi-buttons">
           <button *ngFor="let tipo of tipiGiornoLibero"
                   type="button"
@@ -273,12 +310,12 @@
 
       <div class="form-actions">
         <button mat-button type="button" (click)="chiudiForm()">Annulla</button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="turnoForm.invalid">
-          {{ turnoInModifica ? 'Salva Modifiche' : 'Crea Turno' }}
+        <button mat-flat-button class="btn-salva" type="submit" [disabled]="turnoForm.invalid">
+          {{ turnoInModifica ? 'Salva modifiche' : 'Crea turno' }}
         </button>
       </div>
 
     </form>
   </div>
 
-</div>
+</main>

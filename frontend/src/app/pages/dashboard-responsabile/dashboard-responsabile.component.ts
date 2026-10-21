@@ -1,7 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
@@ -10,14 +9,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { TurniService } from '../../core/services/turni.service';
 import { DipendentiService } from '../../core/services/dipendenti.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Turno, TurnoRequest, Dipendente } from '../../models/turno.model';
+import { Turno, TurnoRequest, Dipendente, TipoTurno } from '../../models/turno.model';
 import { Router } from '@angular/router';
-import { MatTabsModule } from '@angular/material/tabs';
 import { ConfermaDialogComponent } from '../../shared/components/conferma-dialog/conferma-dialog';
 import { NotificaDialogComponent, NotificaDialogResult } from '../../shared/components/notifica-dialog/notifica-dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -25,7 +21,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { RiepilogoOreDialogComponent } from '../../shared/components/riepilogo-ore-dialog/riepilogo-ore-dialog';
 import { ProfiloAdminDialogComponent } from '../../shared/components/profilo-admin-dialog/profilo-admin-dialog';
-import { MatMenuModule } from '@angular/material/menu';
+import { AppHeaderComponent, LinkNavigazione, VoceMenu } from '../../shared/components/app-header/app-header';
 
 @Component({
   selector: 'app-dashboard-responsabile',
@@ -34,7 +30,6 @@ import { MatMenuModule } from '@angular/material/menu';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    MatToolbarModule,
     MatButtonModule,
     MatIconModule,
     MatTableModule,
@@ -43,11 +38,8 @@ import { MatMenuModule } from '@angular/material/menu';
     MatInputModule,
     MatSelectModule,
     MatSnackBarModule,
-    MatCardModule,
-    MatChipsModule,
-    MatTabsModule,
     MatCheckboxModule,
-    MatMenuModule
+    AppHeaderComponent
   ],
   templateUrl: './dashboard-responsabile.component.html',
   styleUrls: ['./dashboard-responsabile.component.scss']
@@ -73,6 +65,105 @@ export class DashboardResponsabileComponent implements OnInit {
   // Giorni della settimana
   giorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
 
+  giorniBrevi = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+
+  links: LinkNavigazione[] = [
+    { label: 'Turni',      route: '/dashboard',  icona: 'calendar_month' },
+    { label: 'Dipendenti', route: '/dipendenti', icona: 'group' }
+  ];
+
+  vociMenu: VoceMenu[] = [
+    { id: 'profilo', label: 'Il mio profilo', icona: 'manage_accounts' },
+    { id: 'esci',    label: 'Esci',           icona: 'logout' }
+  ];
+
+  private readonly etichetteTipo: Record<TipoTurno, string> = {
+    TURNO: 'Turno', FERIE: 'Ferie', MALATTIA: 'Malattia', RIPOSO: 'Riposo'
+  };
+
+  onVoceMenu(id: string): void {
+    if (id === 'profilo') this.apriProfiloAdmin();
+    if (id === 'esci') this.logout();
+  }
+
+  etichettaTipo(tipo: TipoTurno): string {
+    return this.etichetteTipo[tipo] ?? tipo;
+  }
+
+  isOggi(data: Date): boolean {
+    return data.toDateString() === new Date().toDateString();
+  }
+
+  isSettimanaCorrente(): boolean {
+    return this.settimanaCorrente.some(g => this.isOggi(g));
+  }
+
+  tornaAOggi(): void {
+    this.impostaSettimana(new Date());
+    this.cdr.detectChanges();
+  }
+
+  // Es. "13 – 19 ottobre 2026" oppure "27 ottobre – 2 novembre 2026"
+  formatSettimana(): string {
+    if (this.settimanaCorrente.length < 7) return '';
+    const inizio = this.settimanaCorrente[0];
+    const fine = this.settimanaCorrente[6];
+    const mese = (d: Date) => d.toLocaleDateString('it-IT', { month: 'long' });
+    const inizioStr = inizio.getMonth() === fine.getMonth()
+      ? `${inizio.getDate()}`
+      : `${inizio.getDate()} ${mese(inizio)}`;
+    return `${inizioStr} – ${fine.getDate()} ${mese(fine)} ${fine.getFullYear()}`;
+  }
+
+  getIniziali(d: Dipendente): string {
+    return `${d.nome?.[0] ?? ''}${d.cognome?.[0] ?? ''}`.toUpperCase();
+  }
+
+  // Durata in minuti, anche per i turni a cavallo della mezzanotte
+  private durataMinuti(turno: Turno): number {
+    if (turno.tipo !== 'TURNO' || !turno.oraInizio || !turno.oraFine) return 0;
+    const inizio = new Date(`${turno.dataInizio}T${turno.oraInizio}`);
+    const fine = new Date(`${turno.dataFine}T${turno.oraFine}`);
+    return Math.max(0, (fine.getTime() - inizio.getTime()) / 60000);
+  }
+
+  formatDurata(minuti: number): string {
+    const ore = Math.floor(minuti / 60);
+    const min = Math.round(minuti % 60);
+    return min ? `${ore}h ${min}m` : `${ore}h`;
+  }
+
+  private turniReparto(): Turno[] {
+    const ids = new Set(this.getDipendentiPerReparto(this.repartoAttivo).map(d => d.id));
+    return this.turni.filter(t => ids.has(t.dipendenteId));
+  }
+
+  oreDipendente(dipendenteId: number): string {
+    return this.formatDurata(this.turni
+      .filter(t => t.dipendenteId === dipendenteId)
+      .reduce((tot, t) => tot + this.durataMinuti(t), 0));
+  }
+
+  statisticheReparto(): { dipendenti: number; turni: number; ore: string; assenze: number } {
+    const turni = this.turniReparto();
+    return {
+      dipendenti: this.getDipendentiPerReparto(this.repartoAttivo).length,
+      turni: turni.filter(t => t.tipo === 'TURNO').length,
+      ore: this.formatDurata(turni.reduce((tot, t) => tot + this.durataMinuti(t), 0)),
+      assenze: turni.filter(t => t.tipo === 'FERIE' || t.tipo === 'MALATTIA').length
+    };
+  }
+
+  // Turni del giorno per il reparto attivo, con il dipendente (vista mobile)
+  turniGiornoReparto(giorno: Date): { dipendente: Dipendente; turno: Turno }[] {
+    return this.getDipendentiPerReparto(this.repartoAttivo).flatMap(d =>
+      this.getTurniPerDipendenteEGiorno(d.id, giorno).map(turno => ({ dipendente: d, turno })));
+  }
+
+  getRepartoAttivo() {
+    return this.reparti.find(r => r.value === this.repartoAttivo) ?? this.reparti[0];
+  }
+
   dipendenti: Dipendente[] = [];
   turni: Turno[] = [];
   settimanaCorrente: Date[] = [];
@@ -85,8 +176,6 @@ export class DashboardResponsabileComponent implements OnInit {
 
   nomeUtente = '';
 
-  //Reparto azione
-  repartoAzione = 'ADDETTI_SERVIZI';
 
   constructor(
     private turniService: TurniService,
@@ -175,7 +264,8 @@ export class DashboardResponsabileComponent implements OnInit {
 
   apriFormNuovoTurno(dipendenteId?: number, giorno?: Date): void {
     this.turnoInModifica = null;
-    this.turnoForm.reset();
+    this.turnoForm.reset({ tipo: 'TURNO' });
+    this.onTipoChange('TURNO');
     if (dipendenteId) this.turnoForm.patchValue({ dipendenteId });
     if (giorno) {
       const dataStr = this.formatData(giorno);
@@ -195,6 +285,8 @@ export class DashboardResponsabileComponent implements OnInit {
       nota: turno.nota,
       tipo: turno.tipo
     });
+    // Validatori degli orari coerenti con il tipo (es. Ferie senza orari)
+    this.onTipoChange(turno.tipo);
     this.showForm = true;
   }
 
@@ -390,9 +482,9 @@ export class DashboardResponsabileComponent implements OnInit {
   }
 
   reparti = [
-  { value: 'ADDETTI_SERVIZI',   label: '🧹 Addetti ai Servizi' },
-  { value: 'CASSA',     label: '💰 Cassa' },
-  { value: 'MECCANICO', label: '🔧 Meccanico' }
+    { value: 'ADDETTI_SERVIZI', label: 'Addetti ai Servizi', breve: 'Servizi',   icona: 'cleaning_services' },
+    { value: 'CASSA',           label: 'Cassa',              breve: 'Cassa',     icona: 'point_of_sale' },
+    { value: 'MECCANICO',       label: 'Meccanico',          breve: 'Meccanico', icona: 'build' }
   ];
 
   getDipendentiPerReparto(reparto: string): Dipendente[] {
@@ -498,8 +590,9 @@ export class DashboardResponsabileComponent implements OnInit {
 
   repartoAttivo = 'ADDETTI_SERVIZI';
 
-  onTabChange(index: number): void {
-    this.repartoAttivo = this.reparti[index].value;
+  selezionaReparto(reparto: string): void {
+    this.repartoAttivo = reparto;
+    this.notaVisibile = {};
   }
 
   apriRiepilogoOre(): void {

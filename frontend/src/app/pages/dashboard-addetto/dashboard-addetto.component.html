@@ -1,102 +1,109 @@
-<!-- TOOLBAR -->
-<mat-toolbar color="primary">
-  <span class="toolbar-title">🎳 I Miei Turni</span>
-  <span class="spacer"></span>
-  <span class="toolbar-user">Ciao, {{ nomeUtente }}</span>
-  <button class="btn-toolbar" (click)="apriCambioPassword()">
-    <mat-icon>lock</mat-icon> Cambia Password
-  </button>
-  <button class="btn-toolbar" (click)="apriProfilo()">
-    <mat-icon>person</mat-icon> Profilo
-  </button>
-  <button mat-icon-button (click)="logout()" title="Logout">
-    <mat-icon>logout</mat-icon>
-  </button>
-</mat-toolbar>
+<!-- INTESTAZIONE -->
+<app-header [nomeUtente]="nomeUtente" [vociMenu]="vociMenu" (voceSelezionata)="onVoceMenu($event)">
+  <p class="greeting-date">{{ formatDataLabel(oggi) }}</p>
+  <h1>Ciao, {{ getNome() }}</h1>
 
-<!-- BANNER NOTIFICHE -->
-<div class="notifiche-container">
-  <div class="notifica-banner oggi" *ngIf="getTurnoOggi()">
-    <mat-icon>today</mat-icon>
-    <div class="notifica-testo">
-      <strong>Turno oggi — {{ formatDataLabel(oggi) }}</strong>
-      <span>
-        {{ getTurnoOggi().tipo === 'TURNO' ? 
-           formatOrario(getTurnoOggi().oraInizio) + ' - ' + formatOrario(getTurnoOggi().oraFine) : 
-           getTurnoOggi().tipo }}
+  <!-- Oggi / Domani -->
+  <div class="upcoming">
+    <div class="upcoming-card" [class.libero]="!getTurnoOggi()">
+      <span class="upcoming-label">
+        <mat-icon>today</mat-icon> Oggi
       </span>
-      <span class="notifica-nota" *ngIf="getTurnoOggi().nota">
-        <mat-icon>sticky_note_2</mat-icon> {{ getTurnoOggi().nota }}
+      <span class="upcoming-value">{{ descrizioneTurno(getTurnoOggi()) }}</span>
+      <span class="upcoming-note" *ngIf="getTurnoOggi()?.nota">{{ getTurnoOggi()?.nota }}</span>
+    </div>
+
+    <div class="upcoming-card" [class.libero]="!getTurnoDomani()">
+      <span class="upcoming-label">
+        <mat-icon>event</mat-icon> Domani
       </span>
+      <span class="upcoming-value">{{ descrizioneTurno(getTurnoDomani()) }}</span>
+      <span class="upcoming-note" *ngIf="getTurnoDomani()?.nota">{{ getTurnoDomani()?.nota }}</span>
     </div>
   </div>
+</app-header>
 
-  <div class="notifica-banner domani" *ngIf="getTurnoDomani()">
-    <mat-icon>event</mat-icon>
-    <div class="notifica-testo">
-      <strong>Turno domani — {{ formatDataLabel(getDomani()) }}</strong>
-      <span>
-        {{ getTurnoDomani().tipo === 'TURNO' ? 
-           formatOrario(getTurnoDomani().oraInizio) + ' - ' + formatOrario(getTurnoDomani().oraFine) : 
-           getTurnoDomani().tipo }}
-      </span>
-      <span class="notifica-nota" *ngIf="getTurnoDomani().nota">
-        <mat-icon>sticky_note_2</mat-icon> {{ getTurnoDomani().nota }}
-      </span>
-    </div>
-  </div>
-</div>
-
-<div class="addetto-container">
+<main class="content">
 
   <!-- NAVIGAZIONE SETTIMANA -->
-  <div class="week-nav">
-    <button mat-icon-button (click)="settimanaPrecedente()">
-      <mat-icon>chevron_left</mat-icon>
+  <section class="week-bar">
+    <div class="week-nav">
+      <button mat-icon-button (click)="settimanaPrecedente()" aria-label="Settimana precedente">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <div class="week-label">
+        <span class="week-title">{{ formatSettimana() }}</span>
+        <span class="week-summary" *ngIf="!loading">
+          {{ numeroTurniSettimana() }} {{ numeroTurniSettimana() === 1 ? 'turno' : 'turni' }} · {{ oreSettimana() }}
+        </span>
+      </div>
+      <button mat-icon-button (click)="settimanaSuccessiva()" aria-label="Settimana successiva">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
+    <button class="today-button" *ngIf="!isSettimanaCorrente()" (click)="tornaAOggi()">
+      <mat-icon>undo</mat-icon> Torna a oggi
     </button>
-    <span class="week-label">
-      {{ formatDataLabel(settimanaCorrente[0]) }} - {{ formatDataLabel(settimanaCorrente[6]) }}
-    </span>
-    <button mat-icon-button (click)="settimanaSuccessiva()">
-      <mat-icon>chevron_right</mat-icon>
-    </button>
+  </section>
+
+  <!-- CARICAMENTO -->
+  <div class="loading" *ngIf="loading">
+    <mat-spinner diameter="32"></mat-spinner>
   </div>
 
-  <!-- LISTA TURNI PER GIORNO -->
-  <div class="giorni-list">
-    <mat-card *ngFor="let giorno of settimanaCorrente; let i = index"
-              class="giorno-card"
-              [class.oggi]="isOggi(giorno)">
+  <!-- GIORNI DELLA SETTIMANA -->
+  <section class="days" *ngIf="!loading">
+    <article *ngFor="let giorno of settimanaCorrente; let i = index"
+             class="day"
+             [class.oggi]="isOggi(giorno)"
+             [class.passato]="isPassato(giorno)">
 
-      <mat-card-header>
-        <mat-card-title>
-          <span class="giorno-nome">{{ giorni[i] }}</span>
-          <span class="giorno-data">{{ formatDataLabel(giorno) }}</span>
+      <div class="day-date">
+        <span class="day-name">{{ giorniBrevi[i] }}</span>
+        <span class="day-number">{{ giorno.getDate() }}</span>
+      </div>
+
+      <div class="day-body">
+        <div class="day-header">
+          <span class="day-full">{{ giorni[i] }}</span>
           <span class="badge-oggi" *ngIf="isOggi(giorno)">Oggi</span>
-        </mat-card-title>
-      </mat-card-header>
+        </div>
 
-      <mat-divider></mat-divider>
-
-      <mat-card-content>
-        <!-- Turni del giorno -->
-        <div *ngFor="let turno of getTurniGiorno(giorno)" class="turno-item">
-          <mat-icon class="turno-icon" [style.color]="getColoreTurno(turno.tipo)">schedule</mat-icon>
-          <div class="turno-dettagli">
-            <span class="turno-tipo" [style.color]="getColoreTurno(turno.tipo)">{{ turno.tipo }}</span>
-            <span class="turno-orario">{{ formatOrario(turno.oraInizio) }} - {{ formatOrario(turno.oraFine) }}</span>
-            <span class="turno-nota" *ngIf="turno.nota">{{ turno.nota }}</span>
+        <ng-container *ngIf="getTurniGiorno(giorno).length; else nessunTurno">
+          <div *ngFor="let turno of getTurniGiorno(giorno)"
+               class="shift"
+               [ngClass]="'tipo-' + turno.tipo.toLowerCase()">
+            <mat-icon class="shift-icon">{{ iconaTipo(turno.tipo) }}</mat-icon>
+            <div class="shift-info">
+              <ng-container *ngIf="turno.tipo === 'TURNO'; else assenza">
+                <span class="shift-time">
+                  {{ formatOrario(turno.oraInizio) }} – {{ formatOrario(turno.oraFine) }}
+                </span>
+                <span class="shift-duration">{{ durataTurno(turno) }}</span>
+              </ng-container>
+              <ng-template #assenza>
+                <span class="shift-time">{{ etichettaTipo(turno.tipo) }}</span>
+              </ng-template>
+              <span class="shift-note" *ngIf="turno.nota">
+                <mat-icon>sticky_note_2</mat-icon>{{ turno.nota }}
+              </span>
+            </div>
           </div>
-        </div>
+        </ng-container>
 
-        <!-- Nessun turno -->
-        <div class="nessun-turno" *ngIf="getTurniGiorno(giorno).length === 0">
-          <mat-icon>event_available</mat-icon>
-          <span>Nessun turno</span>
-        </div>
-      </mat-card-content>
+        <ng-template #nessunTurno>
+          <span class="no-shift">Nessun turno</span>
+        </ng-template>
+      </div>
+    </article>
+  </section>
 
-    </mat-card>
-  </div>
-
-</div>
+  <!-- LEGENDA -->
+  <footer class="legend" *ngIf="!loading">
+    <span class="legend-item tipo-turno"><i></i>Turno</span>
+    <span class="legend-item tipo-ferie"><i></i>Ferie</span>
+    <span class="legend-item tipo-malattia"><i></i>Malattia</span>
+    <span class="legend-item tipo-riposo"><i></i>Riposo</span>
+  </footer>
+</main>

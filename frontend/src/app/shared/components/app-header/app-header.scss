@@ -1,0 +1,188 @@
+@use '../../../../styles/tema' as t;
+
+:host {
+  display: block;
+  // Larghezza del contenuto, sovrascrivibile dalla pagina (--header-max-width)
+  --contenuto: var(--header-max-width, 720px);
+}
+
+.app-header {
+  position: relative;
+  overflow: hidden;
+  background: t.$header-gradient;
+  color: #fff;
+  padding-bottom: 24px;
+
+  // Cerchio decorativo come nel login
+  &::after {
+    content: '';
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    right: -120px;
+    top: -140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.header-bar,
+.header-content {
+  max-width: var(--contenuto);
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.header-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 64px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .brand-name {
+    font-size: 17px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    &.active {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+    }
+  }
+}
+
+.user-button {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 4px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .user-name {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #fff;
+    color: t.$indigo-dark;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .chevron {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+  }
+}
+
+.header-content {
+  padding-top: 12px;
+}
+
+@media (max-width: t.$mobile) {
+  .header-bar,
+  .header-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .header-bar {
+    height: 56px;
+    gap: 12px;
+  }
+
+  .brand .brand-name {
+    font-size: 16px;
+  }
+
+  // Su telefono i link mostrano solo l'icona
+  .nav-links a {
+    padding: 8px;
+
+    span {
+      display: none;
+    }
+  }
+
+  // Solo avatar
+  .user-button {
+    padding: 3px;
+    gap: 0;
+
+    .user-name,
+    .chevron {
+      display: none;
+    }
+  }
+}
