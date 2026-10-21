@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -39,7 +39,8 @@ export class CambioPasswordComponent implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     public router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       email:            ['', [Validators.required, Validators.email]],
@@ -70,6 +71,7 @@ export class CambioPasswordComponent implements OnInit {
         },
         error: (err) => {
           this.loading = false;
+          this.cdr.detectChanges();
           this.snackBar.open(err.error?.messaggio || 'Errore nel cambio password', 'OK', { duration: 4000 });
         }
       });
